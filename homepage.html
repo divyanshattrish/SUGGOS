@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SugGos — Redesign Any Room with AI</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --dark: #1C1917;
+      --dark2: #292524;
+      --ivory: #FAF8F4;
+      --ivory2: #F2EDE6;
+      --rose: #E8927C;
+      --rose-light: #F2B5A4;
+      --rose-pale: #FDF0EB;
+      --stone: #78716C;
+      --stone-light: #A8A29E;
+      --serif: 'Playfair Display', Georgia, serif;
+      --sans: 'DM Sans', system-ui, sans-serif;
+    }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      background: var(--ivory);
+      color: var(--dark);
+      font-family: var(--sans);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 3rem;
+      height: 64px;
+      background: rgba(28,25,23,0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+    .logo {
+      font-family: var(--serif);
+      font-size: 1.4rem;
+      font-weight: 500;
+      color: var(--ivory);
+      text-decoration: none;
+      letter-spacing: 0.02em;
+    }
+    .logo span { color: var(--rose); }
+    .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 2.5rem;
+    }
+    .nav-right a {
+      font-size: 0.88rem;
+      color: var(--stone-light);
+      text-decoration: none;
+      font-weight: 400;
+      transition: color 0.2s;
+    }
+    .nav-right a:hover { color: var(--ivory); }
+    .nav-btn {
+      background: var(--rose) !important;
+      color: #fff !important;
+      padding: 0.55rem 1.4rem;
+      border-radius: 100px;
+      font-weight: 500;
+      font-size: 0.88rem !important;
+      transition: background 0.2s, transform 0.15s !important;
+    }
+    .nav-btn:hover { background: var(--rose-light) !important; transform: translateY(-1px); }
+
+    /* ── HERO ── */
+    .hero {
+      background: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 8rem 2rem 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(232,146,124,0.12) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .hero-tag {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: rgba(232,146,124,0.12);
+      border: 1px solid rgba(232,146,124,0.3);
+      color: var(--rose-light);
+      font-size: 0.78rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.4rem 1rem;
+      border-radius: 100px;
+      margin-bottom: 2rem;
+    }
+    .hero-tag::before {
+      content: '';
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--rose);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+    .hero h1 {
+      font-family: var(--serif);
+      font-size: clamp(3rem, 6vw, 5.2rem);
+      font-weight: 400;
+      color: var(--ivory);
+      line-height: 1.1;
+      max-width: 820px;
+      margin: 0 auto 1.6rem;
+    }
+    .hero h1 em {
+      font-style: italic;
+      color: var(--rose);
+    }
+    .hero-sub {
+      font-size: clamp(1rem, 1.5vw, 1.15rem);
+      color: var(--stone-light);
+      max-width: 520px;
+      margin: 0 auto 2.8rem;
+      line-height: 1.75;
+      font-weight: 300;
+    }
+    .hero-actions {
+      display: flex;
+      gap: 1rem;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-bottom: 5rem;
+    }
+    .btn-rose {
+      background: var(--rose);
+      color: #fff;
+      font-size: 0.95rem;
+      font-weight: 500;
+      padding: 0.85rem 2rem;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: background 0.2s, transform 0.15s;
+    }
+    .btn-rose:hover { background: var(--rose-light); transform: translateY(-2px); }
+    .btn-ghost {
+      background: transparent;
+      color: var(--stone-light);
+      font-size: 0.95rem;
+      font-weight: 400;
+      padding: 0.85rem 2rem;
+      border-radius: 100px;
+      border: 1px solid rgba(168,162,158,0.3);
+      text-decoration: none;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn-ghost:hover { border-color: var(--stone-light); color: var(--ivory); }
+
+    /* ── ROOM PREVIEW STRIP ── */
+    .room-strip {
+      display: flex;
+      gap: 12px;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+    }
+    .room-card-preview {
+      flex: 1;
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+      aspect-ratio: 4/3;
+      background: var(--dark2);
+    }
+    .room-before {
+      background: linear-gradient(160deg, #2A2320 0%, #1E1A18 100%);
+    }
+    .room-after {
+      background: linear-gradient(160deg, #2C2420 0%, #3A2D26 100%);
+      border: 1px solid rgba(232,146,124,0.25);
+      box-shadow: 0 0 40px rgba(232,146,124,0.08);
+    }
+
+    /* SVG room illustration */
+    .room-svg { width: 100%; height: 100%; }
+
+    .room-pill {
+      position: absolute;
+      bottom: 14px; left: 50%; transform: translateX(-50%);
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      color: #fff;
+      font-size: 0.72rem;
+      font-weight: 500;
+      padding: 0.35rem 0.9rem;
+      border-radius: 100px;
+      white-space: nowrap;
+      letter-spacing: 0.04em;
+    }
+    .room-after .room-pill {
+      background: rgba(232,146,124,0.8);
+    }
+
+    /* Floating suggestion card */
+    .suggestion-float {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: rgba(250,248,244,0.92);
+      backdrop-filter: blur(10px);
+      border-radius: 10px;
+      padding: 0.7rem 0.9rem;
+      font-size: 0.72rem;
+      color: var(--dark);
+      line-height: 1.5;
+      max-width: 150px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .suggestion-float strong {
+      display: block;
+      font-weight: 600;
+      font-size: 0.75rem;
+      margin-bottom: 0.2rem;
+    }
+    .suggestion-float .price {
+      color: var(--rose);
+      font-weight: 600;
+    }
+
+    /* ── SOCIAL PROOF BAR ── */
+    .proof-bar {
+      background: var(--ivory2);
+      border-top: 1px solid #E8E0D8;
+      border-bottom: 1px solid #E8E0D8;
+      padding: 1.6rem 2rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4rem;
+      flex-wrap: wrap;
+    }
+    .proof-item {
+      text-align: center;
+    }
+    .proof-num {
+      font-family: var(--serif);
+      font-size: 1.8rem;
+      font-weight: 500;
+      color: var(--dark);
+      line-height: 1;
+    }
+    .proof-label {
+      font-size: 0.78rem;
+      color: var(--stone);
+      margin-top: 0.2rem;
+      font-weight: 400;
+    }
+    .proof-divider {
+      width: 1px; height: 40px;
+      background: #D4CCC4;
+    }
+
+    /* ── HOW SECTION ── */
+    .how {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 8rem 2rem;
+    }
+    .section-eyebrow {
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--rose);
+      margin-bottom: 1rem;
+    }
+    .section-h {
+      font-family: var(--serif);
+      font-size: clamp(2rem, 3.5vw, 3rem);
+      font-weight: 400;
+      line-height: 1.2;
+      color: var(--dark);
+      max-width: 560px;
+    }
+    .section-h em { font-style: italic; }
+
+    .steps-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2.5rem;
+      margin-top: 4rem;
+    }
+    .step-item {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .step-icon-wrap {
+      width: 52px; height: 52px;
+      border-radius: 14px;
+      background: var(--rose-pale);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+    }
+    .step-h {
+      font-family: var(--serif);
+      font-size: 1.25rem;
+      font-weight: 400;
+      color: var(--dark);
+      line-height: 1.3;
+    }
+    .step-p {
+      font-size: 0.9rem;
+      color: var(--stone);
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    /* ── FEATURES / WHAT YOU GET ── */
+    .what {
+      background: var(--dark);
+      padding: 8rem 2rem;
+    }
+    .what-inner {
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+    .what .section-eyebrow { color: var(--rose-light); }
+    .what .section-h { color: var(--ivory); max-width: 500px; }
+
+    .features-bento {
+      display: grid;
+      grid-template-columns: 1.4fr 1fr;
+      grid-template-rows: auto auto;
+      gap: 16px;
+      margin-top: 4rem;
+    }
+    .bento-card {
+      background: var(--dark2);
+      border-radius: 20px;
+      padding: 2.2rem 2rem;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: border-color 0.3s;
+    }
+    .bento-card:hover { border-color: rgba(232,146,124,0.3); }
+    .bento-large { grid-row: span 2; }
+    .bento-icon { font-size: 2rem; margin-bottom: 1.4rem; display: block; }
+    .bento-h {
+      font-family: var(--serif);
+      font-size: 1.35rem;
+      font-weight: 400;
+      color: var(--ivory);
+      margin-bottom: 0.7rem;
+      line-height: 1.3;
+    }
+    .bento-p {
+      font-size: 0.88rem;
+      color: #78716C;
+      line-height: 1.7;
+      font-weight: 300;
+    }
+
+    /* Big feature visual */
+    .bento-visual {
+      margin-top: 2rem;
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 1.4rem;
+      border: 1px solid rgba(255,255,255,0.06);
+    }
+    .product-suggestion {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 0.8rem;
+      background: rgba(255,255,255,0.04);
+      border-radius: 10px;
+      margin-bottom: 0.6rem;
+      transition: background 0.2s;
+      cursor: pointer;
+    }
+    .product-suggestion:last-child { margin-bottom: 0; }
+    .product-suggestion:hover { background: rgba(232,146,124,0.08); }
+    .product-thumb {
+      width: 42px; height: 42px;
+      border-radius: 8px;
+      flex-shrink: 0;
+    }
+    .product-thumb-sofa { background: linear-gradient(135deg, #5C4A3A, #8B6B4A); }
+    .product-thumb-lamp { background: linear-gradient(135deg, #8A7A5A, #C4A870); }
+    .product-thumb-rug  { background: linear-gradient(135deg, #6A5060, #A07080); }
+    .product-info { flex: 1; }
+    .product-name { font-size: 0.82rem; color: #D4CCC4; font-weight: 500; margin-bottom: 0.1rem; }
+    .product-meta { font-size: 0.72rem; color: #55524F; }
+    .product-price { font-size: 0.88rem; color: var(--rose); font-weight: 600; }
+
+    /* ── TESTIMONIALS ── */
+    .testimonials {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 8rem 2rem;
+    }
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 1.5rem;
+      margin-top: 4rem;
+    }
+    .review-card {
+      background: var(--ivory2);
+      border-radius: 16px;
+      padding: 1.8rem;
+      border: 1px solid #E8E0D8;
+    }
+    .stars {
+      color: var(--rose);
+      font-size: 0.85rem;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    .review-text {
+      font-family: var(--serif);
+      font-size: 1rem;
+      font-weight: 400;
+      color: var(--dark);
+      line-height: 1.65;
+      font-style: italic;
+      margin-bottom: 1.4rem;
+    }
+    .reviewer {
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+    }
+    .reviewer-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #fff;
+      flex-shrink: 0;
+    }
+    .av1 { background: linear-gradient(135deg, #E8927C, #C4705A); }
+    .av2 { background: linear-gradient(135deg, #7C8CE8, #5A6AC4); }
+    .av3 { background: linear-gradient(135deg, #7CE8A0, #5AC470); }
+    .reviewer-name { font-size: 0.85rem; font-weight: 600; color: var(--dark); }
+    .reviewer-loc  { font-size: 0.75rem; color: var(--stone-light); }
+
+    /* ── CTA ── */
+    .cta-band {
+      background: var(--rose);
+      padding: 7rem 2rem;
+      text-align: center;
+    }
+    .cta-band h2 {
+      font-family: var(--serif);
+      font-size: clamp(2.2rem, 4vw, 3.4rem);
+      font-weight: 400;
+      color: #fff;
+      line-height: 1.2;
+      margin-bottom: 1.2rem;
+      max-width: 640px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+    .cta-band h2 em { font-style: italic; }
+    .cta-band p {
+      font-size: 1rem;
+      color: rgba(255,255,255,0.75);
+      margin-bottom: 2.5rem;
+      font-weight: 300;
+    }
+    .cta-white {
+      display: inline-block;
+      background: #fff;
+      color: var(--rose);
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 0.9rem 2.4rem;
+      border-radius: 100px;
+      text-decoration: none;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .cta-white:hover { transform: translateY(-2px); box-shadow: 0 8px 30px rgba(0,0,0,0.15); }
+
+    /* ── FOOTER ── */
+    footer {
+      background: var(--dark);
+      padding: 3rem 3rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .footer-logo {
+      font-family: var(--serif);
+      font-size: 1.2rem;
+      color: var(--stone-light);
+    }
+    .footer-logo span { color: var(--rose); }
+    .footer-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+    .footer-links a {
+      font-size: 0.82rem;
+      color: #55524F;
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+    .footer-links a:hover { color: var(--stone-light); }
+    .footer-copy {
+      font-size: 0.75rem;
+      color: #44403C;
+      width: 100%;
+      text-align: center;
+      padding-top: 1.5rem;
+      border-top: 1px solid #2A2724;
+      margin-top: 1rem;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 860px) {
+      nav { padding: 0 1.5rem; }
+      .nav-right a:not(.nav-btn) { display: none; }
+      .proof-divider { display: none; }
+      .proof-bar { gap: 2rem; }
+      .steps-row { grid-template-columns: 1fr; gap: 2rem; }
+      .features-bento { grid-template-columns: 1fr; }
+      .bento-large { grid-row: span 1; }
+      .reviews-grid { grid-template-columns: 1fr; }
+      .room-strip { gap: 8px; }
+      footer { flex-direction: column; align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <a href="#" class="logo">Sug<span>Gos</span></a>
+    <div class="nav-right">
+      <a href="#how">How it works</a>
+      <a href="#features">Features</a>
+      <a href="#" class="nav-btn">Try for free</a>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="hero-tag">AI-powered interior design</div>
+    <h1>Your room has a<br/><em>better version</em> of itself.</h1>
+    <p class="hero-sub">
+      Upload a photo. SugGos reads your space and shows you exactly how to make it beautiful — with real furniture you can actually buy.
+    </p>
+    <div class="hero-actions">
+      <a href="#" class="btn-rose">Upload your room →</a>
+      <a href="#how" class="btn-ghost">See how it works</a>
+    </div>
+
+    <!-- Room before/after visual -->
+    <div class="room-strip">
+      <!-- BEFORE -->
+      <div class="room-card-preview room-before">
+        <svg class="room-svg" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- wall -->
+          <rect width="400" height="300" fill="#201C1A"/>
+          <!-- floor -->
+          <polygon points="0,180 400,180 400,300 0,300" fill="#2A2420"/>
+          <!-- floor lines -->
+          <line x1="0" y1="210" x2="400" y2="210" stroke="#322C28" stroke-width="1"/>
+          <line x1="0" y1="240" x2="400" y2="240" stroke="#322C28" stroke-width="1"/>
+          <line x1="0" y1="270" x2="400" y2="270" stroke="#322C28" stroke-width="1"/>
+          <line x1="100" y1="180" x2="80" y2="300" stroke="#322C28" stroke-width="1"/>
+          <line x1="200" y1="180" x2="200" y2="300" stroke="#322C28" stroke-width="1"/>
+          <line x1="300" y1="180" x2="320" y2="300" stroke="#322C28" stroke-width="1"/>
+          <!-- window -->
+          <rect x="140" y="30" width="120" height="90" rx="2" fill="#1A2030" stroke="#2A3040" stroke-width="1.5"/>
+          <line x1="200" y1="30" x2="200" y2="120" stroke="#2A3040" stroke-width="1.5"/>
+          <line x1="140" y1="75" x2="260" y2="75" stroke="#2A3040" stroke-width="1.5"/>
+          <!-- light from window -->
+          <polygon points="200,120 130,180 270,180" fill="rgba(200,220,255,0.03)"/>
+          <!-- old couch -->
+          <rect x="60" y="148" width="220" height="40" rx="3" fill="#3A2E26" stroke="#4A3A2E" stroke-width="1"/>
+          <rect x="60" y="130" width="220" height="22" rx="3" fill="#4A3A2E"/>
+          <rect x="60" y="148" width="30" height="40" rx="2" fill="#4A3A2E"/>
+          <rect x="250" y="148" width="30" height="40" rx="2" fill="#4A3A2E"/>
+          <!-- boring rug -->
+          <ellipse cx="200" cy="185" rx="120" ry="12" fill="#2E2620" stroke="#3A302A" stroke-width="1"/>
+          <!-- side table -->
+          <rect x="295" y="158" width="45" height="30" rx="2" fill="#2E2820"/>
+          <rect x="298" y="148" width="39" height="12" rx="2" fill="#3A342C"/>
+          <!-- lamp (off) -->
+          <polygon points="320,148 308,118 332,118" fill="#3A3430"/>
+          <rect x="317" y="118" width="6" height="30" fill="#3A3430"/>
+        </svg>
+        <div class="room-pill">before</div>
+      </div>
+
+      <!-- AFTER -->
+      <div class="room-card-preview room-after">
+        <svg class="room-svg" viewBox="0 0 400 300" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- wall warm white -->
+          <rect width="400" height="300" fill="#2A2220"/>
+          <!-- accent wall section -->
+          <rect x="100" y="0" width="200" height="180" fill="#2E2520"/>
+          <!-- floor warm -->
+          <polygon points="0,180 400,180 400,300 0,300" fill="#2E2824"/>
+          <line x1="0" y1="210" x2="400" y2="210" stroke="#3A3028" stroke-width="1"/>
+          <line x1="0" y1="240" x2="400" y2="240" stroke="#3A3028" stroke-width="1"/>
+          <line x1="0" y1="270" x2="400" y2="270" stroke="#3A3028" stroke-width="1"/>
+          <line x1="100" y1="180" x2="80" y2="300" stroke="#3A3028" stroke-width="1"/>
+          <line x1="200" y1="180" x2="200" y2="300" stroke="#3A3028" stroke-width="1"/>
+          <line x1="300" y1="180" x2="320" y2="300" stroke="#3A3028" stroke-width="1"/>
+          <!-- window with warm light -->
+          <rect x="140" y="30" width="120" height="90" rx="2" fill="#2A3848" stroke="#3A5060" stroke-width="1.5"/>
+          <line x1="200" y1="30" x2="200" y2="120" stroke="#3A5060" stroke-width="1.5"/>
+          <line x1="140" y1="75" x2="260" y2="75" stroke="#3A5060" stroke-width="1.5"/>
+          <!-- warm glow from lamp -->
+          <radialGradient id="lampGlow" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="#E8A060" stop-opacity="0.3"/>
+            <stop offset="100%" stop-color="#E8A060" stop-opacity="0"/>
+          </radialGradient>
+          <ellipse cx="320" cy="130" rx="60" ry="50" fill="url(#lampGlow)"/>
+          <!-- new sofa (stylish) -->
+          <rect x="55" y="150" width="230" height="36" rx="6" fill="#7A5C44" stroke="#9A7A5A" stroke-width="1"/>
+          <rect x="55" y="132" width="230" height="22" rx="5" fill="#8A6A50"/>
+          <rect x="55" y="150" width="28" height="36" rx="4" fill="#8A6A50"/>
+          <rect x="257" y="150" width="28" height="36" rx="4" fill="#8A6A50"/>
+          <!-- cushions -->
+          <rect x="92" y="136" width="44" height="18" rx="8" fill="#C4906A" opacity="0.8"/>
+          <rect x="148" y="136" width="44" height="18" rx="8" fill="#E8927C" opacity="0.7"/>
+          <rect x="204" y="136" width="44" height="18" rx="8" fill="#C4906A" opacity="0.8"/>
+          <!-- vibrant rug -->
+          <ellipse cx="180" cy="188" rx="130" ry="14" fill="#5A4060" stroke="#7A6080" stroke-width="1"/>
+          <ellipse cx="180" cy="188" rx="90" ry="9" fill="#7A5080" stroke="none" opacity="0.5"/>
+          <!-- side table (wood) -->
+          <rect x="295" y="158" width="50" height="30" rx="4" fill="#5A4030" stroke="#7A6040" stroke-width="1"/>
+          <rect x="298" y="148" width="44" height="13" rx="4" fill="#6A5040"/>
+          <!-- lamp ON with glow -->
+          <polygon points="323,148 309,112 337,112" fill="#C48A40" stroke="#E8B060" stroke-width="1"/>
+          <rect x="319" y="112" width="8" height="38" fill="#7A5830"/>
+          <circle cx="323" cy="112" r="5" fill="#FFE0A0" opacity="0.9"/>
+          <!-- plant -->
+          <rect x="22" y="158" width="14" height="22" rx="2" fill="#4A3828"/>
+          <ellipse cx="29" cy="158" rx="18" ry="22" fill="#3A5030"/>
+          <ellipse cx="20" cy="148" rx="12" ry="16" fill="#4A6040"/>
+          <ellipse cx="36" cy="145" rx="10" ry="14" fill="#3A5030"/>
+          <!-- wall art -->
+          <rect x="108" y="22" width="60" height="50" rx="3" fill="#3A3028" stroke="#5A4838" stroke-width="1"/>
+          <ellipse cx="138" cy="47" rx="18" ry="14" fill="#7A5040" opacity="0.6"/>
+          <rect x="232" y="22" width="60" height="50" rx="3" fill="#3A3028" stroke="#5A4838" stroke-width="1"/>
+          <line x1="248" y1="35" x2="276" y2="65" stroke="#6A8040" stroke-width="2" opacity="0.6"/>
+          <line x1="276" y1="35" x2="248" y2="65" stroke="#6A8040" stroke-width="2" opacity="0.4"/>
+        </svg>
+        <!-- Floating suggestion -->
+        <div class="suggestion-float">
+          <strong>✦ SugGos pick</strong>
+          Velvet accent sofa<br/>
+          <span class="price">$649 →</span>
+        </div>
+        <div class="room-pill">after</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SOCIAL PROOF -->
+  <div class="proof-bar">
+    <div class="proof-item">
+      <div class="proof-num">50k+</div>
+      <div class="proof-label">rooms redesigned</div>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-item">
+      <div class="proof-num">4.9★</div>
+      <div class="proof-label">average rating</div>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-item">
+      <div class="proof-num">30 sec</div>
+      <div class="proof-label">to first suggestion</div>
+    </div>
+    <div class="proof-divider"></div>
+    <div class="proof-item">
+      <div class="proof-num">Free</div>
+      <div class="proof-label">to get started</div>
+    </div>
+  </div>
+
+  <!-- HOW IT WORKS -->
+  <section class="how" id="how">
+    <div class="section-eyebrow">how it works</div>
+    <h2 class="section-h">Three steps to a room you <em>love</em>.</h2>
+
+    <div class="steps-row">
+      <div class="step-item">
+        <div class="step-icon-wrap">📷</div>
+        <h3 class="step-h">Snap a photo</h3>
+        <p class="step-p">Take a quick photo of any room — living room, bedroom, kitchen, anywhere. No special setup needed. A phone photo works perfectly.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-icon-wrap">✨</div>
+        <h3 class="step-h">AI reads your space</h3>
+        <p class="step-p">SugGos analyzes your room — the layout, the light, what furniture you already have, and your color palette — in about 30 seconds.</p>
+      </div>
+      <div class="step-item">
+        <div class="step-icon-wrap">🛒</div>
+        <h3 class="step-h">Shop the look</h3>
+        <p class="step-p">Get personalized furniture and decor suggestions matched to your space, with real products and prices. Preview them in 3D before you buy.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FEATURES BENTO -->
+  <section class="what" id="features">
+    <div class="what-inner">
+      <div class="section-eyebrow">what you get</div>
+      <h2 class="section-h">Design advice that <em>knows</em> your room.</h2>
+
+      <div class="features-bento">
+        <!-- Large card -->
+        <div class="bento-card bento-large">
+          <span class="bento-icon">🛋️</span>
+          <h3 class="bento-h">Real products, real prices</h3>
+          <p class="bento-p">Every suggestion is a real item you can actually buy. SugGos matches furniture and decor to your room's style and ships you straight to the product page.</p>
+          <div class="bento-visual">
+            <div class="product-suggestion">
+              <div class="product-thumb product-thumb-sofa"></div>
+              <div class="product-info">
+                <div class="product-name">Velvet accent sofa, sand</div>
+                <div class="product-meta">matches your warm palette</div>
+              </div>
+              <div class="product-price">$649</div>
+            </div>
+            <div class="product-suggestion">
+              <div class="product-thumb product-thumb-lamp"></div>
+              <div class="product-info">
+                <div class="product-name">Arc floor lamp, brass</div>
+                <div class="product-meta">fills your empty corner</div>
+              </div>
+              <div class="product-price">$189</div>
+            </div>
+            <div class="product-suggestion">
+              <div class="product-thumb product-thumb-rug"></div>
+              <div class="product-info">
+                <div class="product-name">Moroccan area rug, plum</div>
+                <div class="product-meta">anchors your seating area</div>
+              </div>
+              <div class="product-price">$299</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Small cards -->
+        <div class="bento-card">
+          <span class="bento-icon">🧊</span>
+          <h3 class="bento-h">See it in 3D first</h3>
+          <p class="bento-p">Preview any piece of furniture in your actual room before spending a cent. Rotate it, move it around, see if it fits.</p>
+        </div>
+
+        <div class="bento-card">
+          <span class="bento-icon">🎨</span>
+          <h3 class="bento-h">Color & layout ideas</h3>
+          <p class="bento-p">Get color palette suggestions and layout tweaks tailored to your room — not generic tips from a blog post.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- TESTIMONIALS -->
+  <section class="testimonials">
+    <div class="section-eyebrow">people love it</div>
+    <h2 class="section-h">Real rooms. Real <em>results.</em></h2>
+
+    <div class="reviews-grid">
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"I uploaded a photo of my sad living room and within a minute I had a complete redesign plan. Bought two pieces SugGos suggested and my room looks like a magazine spread."</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar av1">P</div>
+          <div>
+            <div class="reviewer-name">Priya M.</div>
+            <div class="reviewer-loc">Mumbai</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"I've always been bad at decorating. SugGos just… got my style immediately. The 3D preview saved me from a couch I would have hated."</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar av2">J</div>
+          <div>
+            <div class="reviewer-name">James T.</div>
+            <div class="reviewer-loc">London</div>
+          </div>
+        </div>
+      </div>
+      <div class="review-card">
+        <div class="stars">★★★★★</div>
+        <p class="review-text">"Moved into a new flat and had no idea where to start. SugGos gave me an entire room plan with a budget I could actually work with. Game changer."</p>
+        <div class="reviewer">
+          <div class="reviewer-avatar av3">A</div>
+          <div>
+            <div class="reviewer-name">Amara K.</div>
+            <div class="reviewer-loc">Lagos</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-band">
+    <h2>Your best room is one<br/><em>photo away.</em></h2>
+    <p>Free to try. No account needed. Just upload and see what's possible.</p>
+    <a href="#" class="cta-white">Upload a room photo →</a>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="footer-logo">Sug<span>Gos</span></div>
+    <ul class="footer-links">
+      <li><a href="#">How it works</a></li>
+      <li><a href="#">Pricing</a></li>
+      <li><a href="#">Privacy</a></li>
+      <li><a href="#">Contact</a></li>
+    </ul>
+    <div class="footer-copy">© 2025 SugGos. All rights reserved.</div>
+  </footer>
+
+</body>
+</html>
