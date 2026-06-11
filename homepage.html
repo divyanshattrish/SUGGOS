@@ -151,7 +151,7 @@
       gap: 1rem;
       justify-content: center;
       flex-wrap: wrap;
-      margin-bottom: 5rem;
+      margin-bottom: 2rem;
     }
     .btn-rose {
       background: var(--rose);
@@ -162,6 +162,8 @@
       border-radius: 100px;
       text-decoration: none;
       transition: background 0.2s, transform 0.15s;
+      border: none;
+      cursor: pointer;
     }
     .btn-rose:hover { background: var(--rose-light); transform: translateY(-2px); }
     .btn-ghost {
@@ -176,6 +178,46 @@
       transition: border-color 0.2s, color 0.2s;
     }
     .btn-ghost:hover { border-color: var(--stone-light); color: var(--ivory); }
+
+    .upload-panel {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 4rem;
+      max-width: 840px;
+      width: 100%;
+      text-align: center;
+    }
+    .upload-panel.active { display: flex; }
+    .upload-status {
+      color: var(--ivory);
+      font-size: 0.95rem;
+      font-weight: 300;
+      max-width: 520px;
+      line-height: 1.6;
+    }
+    .upload-preview {
+      width: min(100%, 580px);
+      border-radius: 18px;
+      overflow: hidden;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.12);
+      padding: 0.75rem;
+      display: flex;
+      justify-content: center;
+    }
+    .upload-preview img {
+      width: 100%;
+      height: auto;
+      border-radius: 14px;
+      object-fit: cover;
+      display: block;
+    }
+    .product-suggestion.active {
+      border-color: rgba(255,255,255,0.45);
+      background: rgba(232,146,124,0.12);
+    }
 
     /* ── ROOM PREVIEW STRIP ── */
     .room-strip {
@@ -582,8 +624,15 @@
       Upload a photo. SugGos reads your space and shows you exactly how to make it beautiful — with real furniture you can actually buy.
     </p>
     <div class="hero-actions">
-      <a href="#" class="btn-rose">Upload your room →</a>
+      <button class="btn-rose" id="uploadButton">Upload your room →</button>
       <a href="#how" class="btn-ghost">See how it works</a>
+    </div>
+    <input type="file" id="uploadInput" accept="image/*" hidden />
+    <div class="upload-panel" id="uploadPanel">
+      <div class="upload-status" id="uploadStatus">Upload a photo and see a live preview of your room in the hero section.</div>
+      <div class="upload-preview" id="uploadPreview">
+        <img id="roomPreview" alt="Uploaded room preview" />
+      </div>
     </div>
 
     <!-- Room before/after visual -->
@@ -768,7 +817,7 @@
               </div>
               <div class="product-price">$189</div>
             </div>
-            <div class="product-suggestion">
+            <div class="product-suggestion" data-name="Moroccan area rug, plum">
               <div class="product-thumb product-thumb-rug"></div>
               <div class="product-info">
                 <div class="product-name">Moroccan area rug, plum</div>
@@ -856,5 +905,56 @@
     <div class="footer-copy">© 2025 SugGos. All rights reserved.</div>
   </footer>
 
+  <script>
+    const uploadButton = document.getElementById('uploadButton');
+    const uploadInput = document.getElementById('uploadInput');
+    const uploadPanel = document.getElementById('uploadPanel');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const roomPreview = document.getElementById('roomPreview');
+    const productSuggestions = document.querySelectorAll('.product-suggestion');
+    const tryFreeButton = document.querySelector('.nav-btn');
+
+    function formatFileSize(bytes) {
+      return bytes >= 1000000
+        ? `${(bytes / 1000000).toFixed(1)} MB`
+        : `${(bytes / 1000).toFixed(0)} KB`;
+    }
+
+    uploadButton.addEventListener('click', (event) => {
+      event.preventDefault();
+      uploadInput.click();
+    });
+
+    uploadInput.addEventListener('change', () => {
+      const file = uploadInput.files && uploadInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        roomPreview.src = reader.result;
+        roomPreview.alt = `Preview of ${file.name}`;
+        uploadPanel.classList.add('active');
+        uploadStatus.textContent = `Great choice! ${file.name} (${formatFileSize(file.size)}) has been loaded. Scroll down to see design ideas based on your room.`;
+      };
+      reader.readAsDataURL(file);
+    });
+
+    productSuggestions.forEach((item) => {
+      item.addEventListener('click', () => {
+        productSuggestions.forEach((card) => card.classList.remove('active'));
+        item.classList.add('active');
+        const name = item.dataset.name || item.querySelector('.product-name').textContent;
+        uploadStatus.textContent = `Selected suggestion: ${name}. Great pick for your room update.`;
+        uploadPanel.classList.add('active');
+      });
+    });
+
+    if (tryFreeButton) {
+      tryFreeButton.addEventListener('click', (event) => {
+        event.preventDefault();
+        uploadInput.click();
+      });
+    }
+  </script>
 </body>
 </html>

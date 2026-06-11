@@ -1,4 +1,6 @@
 import './App.css';
+import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import ResultsPage from './ResultsPage';
 
 /* ─────────────────────────────────────────
    NAV
@@ -6,13 +8,13 @@ import './App.css';
 function Nav() {
   return (
     <nav style={styles.nav}>
-      <a href="#" style={styles.logo}>
+      <a href="/" style={styles.logo}>
         Sug<span style={{ color: 'var(--rose)' }}>Gos</span>
       </a>
       <div style={styles.navRight}>
         <a href="#how" style={styles.navLink}>How it works</a>
         <a href="#features" style={styles.navLink}>Features</a>
-        <a href="#" style={{ ...styles.navLink, ...styles.navBtn }}>Try for free</a>
+        <a href="/results" style={{ ...styles.navLink, ...styles.navBtn }}>Try for free</a>
       </div>
     </nav>
   );
@@ -99,6 +101,7 @@ function RoomAfter() {
 }
 
 function Hero() {
+  const navigate = useNavigate();
   return (
     <section style={styles.hero}>
       <div style={styles.heroBg} aria-hidden="true" />
@@ -110,18 +113,16 @@ function Hero() {
         Upload a photo. SugGos reads your space and shows you exactly how to make it beautiful — with real furniture you can actually buy.
       </p>
       <div style={styles.heroActions}>
-        <a href="#" style={styles.btnRose}>Upload your room →</a>
+        <button onClick={() => navigate('/results')} style={{ ...styles.btnRose, border: 'none', cursor: 'pointer' }}>Upload your room →</button>
         <a href="#how" style={styles.btnGhost}>See how it works</a>
       </div>
 
       {/* Room strip */}
       <div style={styles.roomStrip}>
-        {/* Before */}
         <div style={{ ...styles.roomCard, ...styles.roomBefore }}>
           <RoomBefore />
           <div style={styles.roomPill}>before</div>
         </div>
-        {/* After */}
         <div style={{ ...styles.roomCard, ...styles.roomAfter }}>
           <RoomAfter />
           <div style={styles.suggestionFloat}>
@@ -207,7 +208,6 @@ function Features() {
           Design advice that <em style={{ fontStyle: 'italic' }}>knows</em> your room.
         </h2>
         <div style={styles.bento}>
-          {/* Large card */}
           <div style={{ ...styles.bentoCard, gridRow: 'span 2' }}>
             <span style={styles.bentoIcon}>🛋️</span>
             <h3 style={styles.bentoH}>Real products, real prices</h3>
@@ -225,7 +225,6 @@ function Features() {
               ))}
             </div>
           </div>
-          {/* Small cards */}
           <div style={styles.bentoCard}>
             <span style={styles.bentoIcon}>🧊</span>
             <h3 style={styles.bentoH}>See it in 3D first</h3>
@@ -279,11 +278,12 @@ function Testimonials() {
    CTA BAND
 ───────────────────────────────────────── */
 function CtaBand() {
+  const navigate = useNavigate();
   return (
     <section style={styles.ctaBand}>
       <h2 style={styles.ctaH2}>Your best room is one<br /><em style={{ fontStyle: 'italic' }}>photo away.</em></h2>
       <p style={styles.ctaP}>Free to try. No account needed. Just upload and see what's possible.</p>
-      <a href="#" style={styles.ctaWhite}>Upload a room photo →</a>
+      <button onClick={() => navigate('/results')} style={{ ...styles.ctaWhite, border: 'none', cursor: 'pointer' }}>Upload a room photo →</button>
     </section>
   );
 }
@@ -308,9 +308,9 @@ function Footer() {
 }
 
 /* ─────────────────────────────────────────
-   APP ROOT
+   HOME PAGE
 ───────────────────────────────────────── */
-function App() {
+function HomePage() {
   return (
     <>
       <Nav />
@@ -325,13 +325,26 @@ function App() {
   );
 }
 
+/* ─────────────────────────────────────────
+   APP ROOT — with Router
+───────────────────────────────────────── */
+function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/results" element={<ResultsPage />} />
+      </Routes>
+    </BrowserRouter>
+  );
+}
+
 export default App;
 
 /* ─────────────────────────────────────────
    STYLES
 ───────────────────────────────────────── */
 const styles = {
-  /* NAV */
   nav: {
     position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -353,8 +366,6 @@ const styles = {
     padding: '0.55rem 1.4rem', borderRadius: 100,
     fontWeight: 500,
   },
-
-  /* HERO */
   hero: {
     background: 'var(--dark)', minHeight: '100vh',
     display: 'flex', flexDirection: 'column', alignItems: 'center',
@@ -425,8 +436,6 @@ const styles = {
     fontSize: '0.72rem', color: 'var(--dark)', lineHeight: 1.5,
     maxWidth: 150, boxShadow: '0 4px 20px rgba(0,0,0,0.2)',
   },
-
-  /* PROOF BAR */
   proofBar: {
     background: 'var(--ivory2)',
     borderTop: '1px solid #E8E0D8', borderBottom: '1px solid #E8E0D8',
@@ -441,8 +450,6 @@ const styles = {
   },
   proofLabel: { fontSize: '0.78rem', color: 'var(--stone)', marginTop: '0.2rem', fontWeight: 400 },
   proofDivider: { width: 1, height: 40, background: '#D4CCC4' },
-
-  /* HOW IT WORKS */
   how: { maxWidth: 1100, margin: '0 auto', padding: '8rem 2rem' },
   eyebrow: {
     fontSize: '0.75rem', fontWeight: 600, letterSpacing: '0.12em',
@@ -466,8 +473,6 @@ const styles = {
     fontWeight: 400, color: 'var(--dark)', lineHeight: 1.3,
   },
   stepP: { fontSize: '0.9rem', color: 'var(--stone)', lineHeight: 1.7, fontWeight: 300 },
-
-  /* FEATURES */
   what: { background: 'var(--dark)', padding: '8rem 2rem' },
   whatInner: { maxWidth: 1100, margin: '0 auto' },
   bento: {
@@ -498,8 +503,6 @@ const styles = {
   productName: { fontSize: '0.82rem', color: '#D4CCC4', fontWeight: 500, marginBottom: '0.1rem' },
   productMeta: { fontSize: '0.72rem', color: '#55524F' },
   productPrice: { fontSize: '0.88rem', color: 'var(--rose)', fontWeight: 600 },
-
-  /* TESTIMONIALS */
   testimonials: { maxWidth: 1100, margin: '0 auto', padding: '8rem 2rem' },
   reviewsGrid: {
     display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
@@ -522,8 +525,6 @@ const styles = {
   },
   reviewerName: { fontSize: '0.85rem', fontWeight: 600, color: 'var(--dark)' },
   reviewerLoc: { fontSize: '0.75rem', color: 'var(--stone-light)' },
-
-  /* CTA */
   ctaBand: { background: 'var(--rose)', padding: '7rem 2rem', textAlign: 'center' },
   ctaH2: {
     fontFamily: 'var(--serif)', fontSize: 'clamp(2.2rem, 4vw, 3.4rem)',
@@ -539,8 +540,6 @@ const styles = {
     fontSize: '0.95rem', fontWeight: 600, padding: '0.9rem 2.4rem',
     borderRadius: 100, textDecoration: 'none',
   },
-
-  /* FOOTER */
   footer: {
     background: 'var(--dark)', padding: '3rem',
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
