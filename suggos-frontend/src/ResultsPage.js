@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 /* ─────────────────────────────────────────
    GLOBAL STYLES (animations + responsive)
@@ -265,83 +265,93 @@ function ResultsNav() {
 }
 
 /* ─────────────────────────────────────────
-   ROOM PREVIEW
+   ROOM PREVIEW — real photo or fallback SVG
 ───────────────────────────────────────── */
-function RoomPreview({ activeId }) {
+function RoomPreview({ activeId, imageDataUrl }) {
   return (
     <div style={s.previewWrap} className="sg-preview-wrap">
-      <svg style={s.previewSvg} viewBox="0 0 700 420" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect width="700" height="420" fill="#2A2220"/>
-        <rect x="175" y="0" width="350" height="280" fill="#2E2520"/>
-        <polygon points="0,280 700,280 700,420 0,420" fill="#2E2824"/>
-        <line x1="0" y1="315" x2="700" y2="315" stroke="#3A3028" strokeWidth="1"/>
-        <line x1="0" y1="350" x2="700" y2="350" stroke="#3A3028" strokeWidth="1"/>
-        <line x1="0" y1="385" x2="700" y2="385" stroke="#3A3028" strokeWidth="1"/>
-        <line x1="175" y1="280" x2="140" y2="420" stroke="#3A3028" strokeWidth="1"/>
-        <line x1="350" y1="280" x2="350" y2="420" stroke="#3A3028" strokeWidth="1"/>
-        <line x1="525" y1="280" x2="560" y2="420" stroke="#3A3028" strokeWidth="1"/>
-        <rect x="245" y="40" width="210" height="140" rx="3" fill="#2A3848" stroke="#3A5060" strokeWidth="2"/>
-        <line x1="350" y1="40" x2="350" y2="180" stroke="#3A5060" strokeWidth="2"/>
-        <line x1="245" y1="110" x2="455" y2="110" stroke="#3A5060" strokeWidth="2"/>
-        <defs>
-          <radialGradient id="winLight" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#B8D4F0" stopOpacity="0.12"/>
-            <stop offset="100%" stopColor="#B8D4F0" stopOpacity="0"/>
-          </radialGradient>
-          <radialGradient id="lampGlowR" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#E8A060" stopOpacity="0.35"/>
-            <stop offset="100%" stopColor="#E8A060" stopOpacity="0"/>
-          </radialGradient>
-        </defs>
-        <polygon points="350,180 210,280 490,280" fill="url(#winLight)"/>
-        {/* Sofa */}
-        <rect x="110" y="232" width="380" height="58" rx="8"
-          fill={activeId === 1 ? '#9A7A5A' : '#7A5C44'}
-          stroke={activeId === 1 ? '#E8927C' : '#9A7A5A'}
-          strokeWidth={activeId === 1 ? 2.5 : 1}
-          style={{ transition: 'fill 0.25s, stroke 0.25s' }}/>
-        <rect x="110" y="210" width="380" height="30" rx="6"
-          fill={activeId === 1 ? '#B09070' : '#8A6A50'}
-          style={{ transition: 'fill 0.25s' }}/>
-        <rect x="110" y="232" width="46" height="58" rx="5" fill={activeId === 1 ? '#B09070' : '#8A6A50'} style={{ transition: 'fill 0.25s' }}/>
-        <rect x="444" y="232" width="46" height="58" rx="5" fill={activeId === 1 ? '#B09070' : '#8A6A50'} style={{ transition: 'fill 0.25s' }}/>
-        <rect x="152" y="214" width="72" height="28" rx="10" fill={activeId === 1 ? '#D4A880' : '#C4906A'} opacity="0.9" style={{ transition: 'fill 0.25s' }}/>
-        <rect x="244" y="214" width="72" height="28" rx="10" fill={activeId === 1 ? '#F0C4A4' : '#E8927C'} opacity="0.8" style={{ transition: 'fill 0.25s' }}/>
-        <rect x="336" y="214" width="72" height="28" rx="10" fill={activeId === 1 ? '#D4A880' : '#C4906A'} opacity="0.9" style={{ transition: 'fill 0.25s' }}/>
-        {/* Rug */}
-        <ellipse cx="300" cy="298" rx="210" ry="20"
-          fill={activeId === 3 ? '#9A6080' : '#5A4060'}
-          stroke={activeId === 3 ? '#E8927C' : '#7A6080'}
-          strokeWidth={activeId === 3 ? 2.5 : 1}
-          style={{ transition: 'fill 0.25s, stroke 0.25s' }}/>
-        <ellipse cx="300" cy="298" rx="145" ry="13" fill={activeId === 3 ? '#C080A0' : '#7A5080'} opacity="0.5" style={{ transition: 'fill 0.25s' }}/>
-        {/* Lamp */}
-        <ellipse cx="560" cy="200" rx="90" ry="75" fill="url(#lampGlowR)"/>
-        <rect x="535" y="240" width="72" height="44" rx="5"
-          fill={activeId === 2 ? '#7A6040' : '#5A4030'}
-          stroke={activeId === 2 ? '#E8927C' : '#7A6040'}
-          strokeWidth={activeId === 2 ? 2.5 : 1}
-          style={{ transition: 'fill 0.25s, stroke 0.25s' }}/>
-        <rect x="540" y="226" width="62" height="18" rx="5" fill={activeId === 2 ? '#A08050' : '#6A5040'} style={{ transition: 'fill 0.25s' }}/>
-        <polygon points="572,226 552,174 592,174" fill={activeId === 2 ? '#E8B060' : '#C48A40'} stroke={activeId === 2 ? '#FFD080' : '#E8B060'} strokeWidth="1" style={{ transition: 'fill 0.25s' }}/>
-        <rect x="568" y="174" width="9" height="54" fill={activeId === 2 ? '#A08050' : '#7A5830'} style={{ transition: 'fill 0.25s' }}/>
-        <circle cx="572" cy="174" r="7" fill={activeId === 2 ? '#FFEEAA' : '#FFE0A0'} opacity="0.95"/>
-        {/* Side table */}
-        <rect x="505" y="258" width="60" height="30" rx="4"
-          fill={activeId === 4 ? '#B09060' : '#8A7050'}
-          stroke={activeId === 4 ? '#E8927C' : 'transparent'}
-          strokeWidth={activeId === 4 ? 2.5 : 0}
-          style={{ transition: 'fill 0.25s, stroke 0.25s' }}/>
-        {/* Plant */}
-        <rect x="52" y="248" width="18" height="30" rx="3" fill="#4A3828"/>
-        <ellipse cx="61" cy="248" rx="26" ry="32" fill="#3A5030"/>
-        <ellipse cx="44" cy="232" rx="18" ry="24" fill="#4A6040"/>
-        <ellipse cx="76" cy="228" rx="15" ry="20" fill="#3A5030"/>
-        {/* Shelves */}
-        <rect x="178" y="38" width="50" height="60" rx="4" fill="#3A3028" stroke="#5A4838" strokeWidth="1"/>
-        <rect x="472" y="38" width="50" height="60" rx="4" fill="#3A3028" stroke="#5A4838" strokeWidth="1"/>
-        {activeId && <ellipse cx="300" cy="295" rx="300" ry="30" fill="rgba(232,146,124,0.05)"/>}
-      </svg>
+      {imageDataUrl ? (
+        /* Real uploaded photo from upload page */
+        <img
+          src={imageDataUrl}
+          alt="Your uploaded room"
+          style={{ width: '100%', display: 'block', objectFit: 'cover', maxHeight: 280 }}
+        />
+      ) : (
+        /* Fallback SVG illustration */
+        <svg style={s.previewSvg} viewBox="0 0 700 420" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <rect width="700" height="420" fill="#2A2220"/>
+          <rect x="175" y="0" width="350" height="280" fill="#2E2520"/>
+          <polygon points="0,280 700,280 700,420 0,420" fill="#2E2824"/>
+          <line x1="0" y1="315" x2="700" y2="315" stroke="#3A3028" strokeWidth="1"/>
+          <line x1="0" y1="350" x2="700" y2="350" stroke="#3A3028" strokeWidth="1"/>
+          <line x1="0" y1="385" x2="700" y2="385" stroke="#3A3028" strokeWidth="1"/>
+          <line x1="175" y1="280" x2="140" y2="420" stroke="#3A3028" strokeWidth="1"/>
+          <line x1="350" y1="280" x2="350" y2="420" stroke="#3A3028" strokeWidth="1"/>
+          <line x1="525" y1="280" x2="560" y2="420" stroke="#3A3028" strokeWidth="1"/>
+          <rect x="245" y="40" width="210" height="140" rx="3" fill="#2A3848" stroke="#3A5060" strokeWidth="2"/>
+          <line x1="350" y1="40" x2="350" y2="180" stroke="#3A5060" strokeWidth="2"/>
+          <line x1="245" y1="110" x2="455" y2="110" stroke="#3A5060" strokeWidth="2"/>
+          <defs>
+            <radialGradient id="winLight" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#B8D4F0" stopOpacity="0.12"/>
+              <stop offset="100%" stopColor="#B8D4F0" stopOpacity="0"/>
+            </radialGradient>
+            <radialGradient id="lampGlowR" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stopColor="#E8A060" stopOpacity="0.35"/>
+              <stop offset="100%" stopColor="#E8A060" stopOpacity="0"/>
+            </radialGradient>
+          </defs>
+          <polygon points="350,180 210,280 490,280" fill="url(#winLight)"/>
+          {/* Sofa */}
+          <rect x="110" y="232" width="380" height="58" rx="8"
+            fill={activeId === 1 ? '#9A7A5A' : '#7A5C44'}
+            stroke={activeId === 1 ? '#E8927C' : '#9A7A5A'}
+            strokeWidth={activeId === 1 ? 2.5 : 1}
+            style={{ transition: 'fill 0.25s, stroke 0.25s' }}/>
+          <rect x="110" y="210" width="380" height="30" rx="6"
+            fill={activeId === 1 ? '#B09070' : '#8A6A50'}
+            style={{ transition: 'fill 0.25s' }}/>
+          <rect x="110" y="232" width="46" height="58" rx="5" fill={activeId === 1 ? '#B09070' : '#8A6A50'} style={{ transition: 'fill 0.25s' }}/>
+          <rect x="444" y="232" width="46" height="58" rx="5" fill={activeId === 1 ? '#B09070' : '#8A6A50'} style={{ transition: 'fill 0.25s' }}/>
+          <rect x="152" y="214" width="72" height="28" rx="10" fill={activeId === 1 ? '#D4A880' : '#C4906A'} opacity="0.9" style={{ transition: 'fill 0.25s' }}/>
+          <rect x="244" y="214" width="72" height="28" rx="10" fill={activeId === 1 ? '#F0C4A4' : '#E8927C'} opacity="0.8" style={{ transition: 'fill 0.25s' }}/>
+          <rect x="336" y="214" width="72" height="28" rx="10" fill={activeId === 1 ? '#D4A880' : '#C4906A'} opacity="0.9" style={{ transition: 'fill 0.25s' }}/>
+          {/* Rug */}
+          <ellipse cx="300" cy="298" rx="210" ry="20"
+            fill={activeId === 3 ? '#9A6080' : '#5A4060'}
+            stroke={activeId === 3 ? '#E8927C' : '#7A6080'}
+            strokeWidth={activeId === 3 ? 2.5 : 1}
+            style={{ transition: 'fill 0.25s, stroke 0.25s' }}/>
+          <ellipse cx="300" cy="298" rx="145" ry="13" fill={activeId === 3 ? '#C080A0' : '#7A5080'} opacity="0.5" style={{ transition: 'fill 0.25s' }}/>
+          {/* Lamp */}
+          <ellipse cx="560" cy="200" rx="90" ry="75" fill="url(#lampGlowR)"/>
+          <rect x="535" y="240" width="72" height="44" rx="5"
+            fill={activeId === 2 ? '#7A6040' : '#5A4030'}
+            stroke={activeId === 2 ? '#E8927C' : '#7A6040'}
+            strokeWidth={activeId === 2 ? 2.5 : 1}
+            style={{ transition: 'fill 0.25s, stroke 0.25s' }}/>
+          <rect x="540" y="226" width="62" height="18" rx="5" fill={activeId === 2 ? '#A08050' : '#6A5040'} style={{ transition: 'fill 0.25s' }}/>
+          <polygon points="572,226 552,174 592,174" fill={activeId === 2 ? '#E8B060' : '#C48A40'} stroke={activeId === 2 ? '#FFD080' : '#E8B060'} strokeWidth="1" style={{ transition: 'fill 0.25s' }}/>
+          <rect x="568" y="174" width="9" height="54" fill={activeId === 2 ? '#A08050' : '#7A5830'} style={{ transition: 'fill 0.25s' }}/>
+          <circle cx="572" cy="174" r="7" fill={activeId === 2 ? '#FFEEAA' : '#FFE0A0'} opacity="0.95"/>
+          {/* Side table */}
+          <rect x="505" y="258" width="60" height="30" rx="4"
+            fill={activeId === 4 ? '#B09060' : '#8A7050'}
+            stroke={activeId === 4 ? '#E8927C' : 'transparent'}
+            strokeWidth={activeId === 4 ? 2.5 : 0}
+            style={{ transition: 'fill 0.25s, stroke 0.25s' }}/>
+          {/* Plant */}
+          <rect x="52" y="248" width="18" height="30" rx="3" fill="#4A3828"/>
+          <ellipse cx="61" cy="248" rx="26" ry="32" fill="#3A5030"/>
+          <ellipse cx="44" cy="232" rx="18" ry="24" fill="#4A6040"/>
+          <ellipse cx="76" cy="228" rx="15" ry="20" fill="#3A5030"/>
+          {/* Shelves */}
+          <rect x="178" y="38" width="50" height="60" rx="4" fill="#3A3028" stroke="#5A4838" strokeWidth="1"/>
+          <rect x="472" y="38" width="50" height="60" rx="4" fill="#3A3028" stroke="#5A4838" strokeWidth="1"/>
+          {activeId && <ellipse cx="300" cy="295" rx="300" ry="30" fill="rgba(232,146,124,0.05)"/>}
+        </svg>
+      )}
 
       <div style={s.preview3dBadge}>
         <span style={{ fontSize: '1rem' }}>🧊</span>
@@ -351,18 +361,24 @@ function RoomPreview({ activeId }) {
         </div>
       </div>
 
-      {activeId && (
+      {/* Show "Your room" badge when real photo, item label when SVG + hovering */}
+      {imageDataUrl ? (
+        <div style={{ ...s.previewActiveLabel, animation: 'fadeIn 0.2s ease' }}>
+          <span style={{ color: 'var(--rose)', marginRight: '0.4rem' }}>📷</span>
+          Your room
+        </div>
+      ) : activeId ? (
         <div style={{ ...s.previewActiveLabel, animation: 'fadeIn 0.2s ease' }}>
           <span style={{ color: 'var(--rose)', marginRight: '0.4rem' }}>●</span>
           {suggestions.find(x => x.id === activeId)?.name}
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
 
 /* ─────────────────────────────────────────
-   SUGGESTION CARD — redesigned
+   SUGGESTION CARD
 ───────────────────────────────────────── */
 function SuggestionCard({ item, isActive, onHover, onLeave, index }) {
   return (
@@ -371,31 +387,19 @@ function SuggestionCard({ item, isActive, onHover, onLeave, index }) {
       onMouseEnter={() => onHover(item.id)}
       onMouseLeave={onLeave}
     >
-      {/* Thumb — taller, with gradient overlay for text legibility */}
       <div style={{ ...s.cardThumb, background: item.gradient, position: 'relative' }}>
         <div className="sg-thumb-overlay" />
-
-        {/* Match bar — bottom of thumb */}
         <div style={s.matchBar}>
           <div style={{ ...s.matchFill, width: `${item.match}%`, background: item.accentColor }} />
         </div>
-
-        {/* Badges */}
         {item.tag && <div style={s.cardTag}>{item.tag}</div>}
         <div style={s.matchBadge}>{item.match}%</div>
-
-        {/* Category inside thumb */}
         <div style={s.thumbCategory}>{item.category}</div>
       </div>
-
-      {/* Body */}
       <div style={s.cardBody}>
         <h3 style={s.cardName}>{item.name}</h3>
         <p style={s.cardReason}>{item.reason}</p>
-
-        {/* Divider */}
         <div style={s.cardDivider} />
-
         <div style={s.cardFooter}>
           <div>
             <div style={s.cardPrice}>{item.price}</div>
@@ -455,6 +459,20 @@ export default function ResultsPage() {
   const [activeId, setActiveId] = useState(null);
   const [filter, setFilter] = useState('All');
   const navigate = useNavigate();
+  const location = useLocation();
+  const fileRef = useRef(null);
+
+  // Pick up uploaded photo passed from the upload page
+  const imageDataUrl = location.state?.imageDataUrl || null;
+
+  // Re-upload handler from within results page
+  function handleReupload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => navigate('/results', { state: { imageDataUrl: reader.result } });
+    reader.readAsDataURL(file);
+  }
 
   const categories = ['All', ...Array.from(new Set(suggestions.map(s => s.category)))];
   const filtered = filter === 'All' ? suggestions : suggestions.filter(s => s.category === filter);
@@ -466,10 +484,11 @@ export default function ResultsPage() {
       <main style={s.main} className="sg-main">
         {/* Sidebar */}
         <aside style={s.sidebar} className="sg-sidebar">
-          <RoomPreview activeId={activeId} />
+          <RoomPreview activeId={activeId} imageDataUrl={imageDataUrl} />
           <PaletteStrip />
           <RoomInsights />
-          <button className="sg-reupload-btn" onClick={() => navigate('/')}>
+          <input type="file" accept="image/*" ref={fileRef} hidden onChange={handleReupload} />
+          <button className="sg-reupload-btn" onClick={() => fileRef.current.click()}>
             ↑ Upload a new room
           </button>
         </aside>
@@ -488,7 +507,6 @@ export default function ResultsPage() {
             </div>
           </div>
 
-          {/* Filter tabs */}
           <div style={s.filterRow} className="sg-filter-row">
             {categories.map(cat => (
               <button
@@ -501,7 +519,6 @@ export default function ResultsPage() {
             ))}
           </div>
 
-          {/* Cards */}
           <div style={s.cardsGrid} className="sg-cards-grid">
             {filtered.map((item, i) => (
               <SuggestionCard
@@ -525,7 +542,6 @@ export default function ResultsPage() {
 ───────────────────────────────────────── */
 const s = {
   page: { background: 'var(--ivory)', minHeight: '100vh', fontFamily: 'var(--sans)' },
-
   nav: {
     position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
     display: 'flex', alignItems: 'center', justifyContent: 'space-between',
@@ -542,30 +558,18 @@ const s = {
   navCenter: { display: 'flex', alignItems: 'center', gap: '0.6rem' },
   navCrumb: { fontSize: '0.84rem', color: 'var(--stone-light)' },
   navCrumbSep: { color: '#44403C', fontSize: '0.84rem' },
-
   main: {
-    display: 'grid',
-    gridTemplateColumns: '400px 1fr',
-    minHeight: '100vh',
-    paddingTop: 64,
+    display: 'grid', gridTemplateColumns: '400px 1fr',
+    minHeight: '100vh', paddingTop: 64,
   },
-
   sidebar: {
-    background: 'var(--dark)',
-    padding: '2rem 1.8rem',
-    position: 'sticky',
-    top: 64,
-    height: 'calc(100vh - 64px)',
-    overflowY: 'auto',
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '1.2rem',
+    background: 'var(--dark)', padding: '2rem 1.8rem',
+    position: 'sticky', top: 64, height: 'calc(100vh - 64px)',
+    overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '1.2rem',
   },
-
   previewWrap: {
-    borderRadius: 14, overflow: 'hidden',
-    position: 'relative', background: '#1C1917',
-    border: '1px solid rgba(255,255,255,0.06)',
+    borderRadius: 14, overflow: 'hidden', position: 'relative',
+    background: '#1C1917', border: '1px solid rgba(255,255,255,0.06)',
   },
   previewSvg: { width: '100%', display: 'block' },
   preview3dBadge: {
@@ -583,12 +587,10 @@ const s = {
     fontSize: '0.73rem', color: 'var(--ivory)',
     border: '1px solid rgba(232,146,124,0.35)',
   },
-
   sectionLabel: {
     fontSize: '0.68rem', fontWeight: 600, letterSpacing: '0.11em',
     textTransform: 'uppercase', color: 'var(--stone)', marginBottom: '0.85rem',
   },
-
   paletteWrap: {
     background: 'var(--dark2)', borderRadius: 12, padding: '1.1rem',
     border: '1px solid rgba(255,255,255,0.05)',
@@ -597,32 +599,22 @@ const s = {
   swatchWrap: { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.3rem' },
   swatch: { width: 34, height: 34, borderRadius: 8, border: '1px solid rgba(255,255,255,0.07)' },
   swatchName: { fontSize: '0.6rem', color: '#55524F', textAlign: 'center', maxWidth: 42 },
-
   insightsWrap: {
     background: 'var(--dark2)', borderRadius: 12, padding: '1.1rem',
     border: '1px solid rgba(255,255,255,0.05)',
   },
-  insightRow: {
-    display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.8rem',
-  },
+  insightRow: { display: 'flex', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.8rem' },
   insightIconWrap: {
-    width: 30, height: 30, borderRadius: 8,
-    background: 'rgba(255,255,255,0.05)',
+    width: 30, height: 30, borderRadius: 8, background: 'rgba(255,255,255,0.05)',
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     fontSize: '0.85rem', flexShrink: 0,
   },
   insightLabel: { fontSize: '0.7rem', color: 'var(--stone)', marginBottom: '0.12rem' },
   insightValue: { fontSize: '0.8rem', color: 'var(--ivory)', fontWeight: 500 },
-
-  suggestionsCol: {
-    padding: '2.8rem 2.8rem 4rem',
-    background: 'var(--ivory)',
-    overflowY: 'auto',
-  },
+  suggestionsCol: { padding: '2.8rem 2.8rem 4rem', background: 'var(--ivory)', overflowY: 'auto' },
   suggestionsHeader: {
-    display: 'flex', alignItems: 'flex-start',
-    justifyContent: 'space-between', marginBottom: '1.8rem',
-    flexWrap: 'wrap', gap: '1rem',
+    display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between',
+    marginBottom: '1.8rem', flexWrap: 'wrap', gap: '1rem',
   },
   eyebrow: {
     fontSize: '0.7rem', fontWeight: 600, letterSpacing: '0.13em',
@@ -633,32 +625,20 @@ const s = {
     fontWeight: 400, lineHeight: 1.2, color: 'var(--dark)',
   },
   budgetPill: {
-    background: '#fff', border: '1px solid #E8E0D8',
-    borderRadius: 100, padding: '0.5rem 1.1rem',
-    fontSize: '0.8rem', color: 'var(--stone)', whiteSpace: 'nowrap',
-    alignSelf: 'flex-start',
-    boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
+    background: '#fff', border: '1px solid #E8E0D8', borderRadius: 100,
+    padding: '0.5rem 1.1rem', fontSize: '0.8rem', color: 'var(--stone)',
+    whiteSpace: 'nowrap', alignSelf: 'flex-start', boxShadow: '0 1px 4px rgba(0,0,0,0.06)',
   },
-
   filterRow: { display: 'flex', gap: '0.45rem', flexWrap: 'wrap', marginBottom: '1.8rem' },
-
   cardsGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-    gap: '1.1rem',
+    display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1.1rem',
   },
-
-  /* CARD */
-  cardThumb: {
-    height: 160,
-    position: 'relative',
-  },
+  cardThumb: { height: 160, position: 'relative' },
   cardTag: {
     position: 'absolute', top: 10, left: 10,
     background: 'rgba(232,146,124,0.92)', color: '#fff',
     fontSize: '0.67rem', fontWeight: 700, letterSpacing: '0.05em',
-    padding: '0.28rem 0.65rem', borderRadius: 100,
-    backdropFilter: 'blur(4px)',
+    padding: '0.28rem 0.65rem', borderRadius: 100, backdropFilter: 'blur(4px)',
   },
   matchBadge: {
     position: 'absolute', top: 10, right: 10,
@@ -671,30 +651,16 @@ const s = {
     fontSize: '0.65rem', fontWeight: 600, letterSpacing: '0.1em',
     textTransform: 'uppercase', color: 'rgba(255,255,255,0.75)',
   },
-  matchBar: {
-    position: 'absolute', bottom: 0, left: 0, right: 0,
-    height: 3, background: 'rgba(0,0,0,0.2)',
-  },
-  matchFill: {
-    height: '100%', borderRadius: 0,
-    transition: 'width 0.6s ease',
-    opacity: 0.85,
-  },
+  matchBar: { position: 'absolute', bottom: 0, left: 0, right: 0, height: 3, background: 'rgba(0,0,0,0.2)' },
+  matchFill: { height: '100%', transition: 'width 0.6s ease', opacity: 0.85 },
   cardBody: { padding: '1.1rem 1.15rem 1.15rem' },
   cardName: {
     fontFamily: 'var(--serif)', fontSize: '1.02rem', fontWeight: 400,
     color: 'var(--dark)', lineHeight: 1.3, marginBottom: '0.5rem',
   },
-  cardReason: {
-    fontSize: '0.78rem', color: 'var(--stone)', lineHeight: 1.65,
-    fontWeight: 300, marginBottom: '0.9rem',
-  },
-  cardDivider: {
-    height: 1, background: '#F0EAE2', marginBottom: '0.9rem',
-  },
+  cardReason: { fontSize: '0.78rem', color: 'var(--stone)', lineHeight: 1.65, fontWeight: 300, marginBottom: '0.9rem' },
+  cardDivider: { height: 1, background: '#F0EAE2', marginBottom: '0.9rem' },
   cardFooter: { display: 'flex', alignItems: 'center', justifyContent: 'space-between' },
-  cardPrice: {
-    fontFamily: 'var(--serif)', fontSize: '1.1rem', fontWeight: 500, color: 'var(--dark)',
-  },
+  cardPrice: { fontFamily: 'var(--serif)', fontSize: '1.1rem', fontWeight: 500, color: 'var(--dark)' },
   cardRetailer: { fontSize: '0.68rem', color: 'var(--stone-light)', marginTop: '0.08rem' },
 };

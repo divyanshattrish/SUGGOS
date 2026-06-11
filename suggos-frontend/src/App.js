@@ -1,4 +1,5 @@
 import './App.css';
+import { useRef } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import ResultsPage from './ResultsPage';
 
@@ -6,6 +7,17 @@ import ResultsPage from './ResultsPage';
    NAV
 ───────────────────────────────────────── */
 function Nav() {
+  const navigate = useNavigate();
+  const fileRef = useRef(null);
+
+  function handleNavUpload(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => navigate('/results', { state: { imageDataUrl: reader.result } });
+    reader.readAsDataURL(file);
+  }
+
   return (
     <nav style={styles.nav}>
       <a href="/" style={styles.logo}>
@@ -14,7 +26,8 @@ function Nav() {
       <div style={styles.navRight}>
         <a href="#how" style={styles.navLink}>How it works</a>
         <a href="#features" style={styles.navLink}>Features</a>
-        <a href="/results" style={{ ...styles.navLink, ...styles.navBtn }}>Try for free</a>
+        <input type="file" accept="image/*" ref={fileRef} hidden onChange={handleNavUpload} />
+        <button onClick={() => fileRef.current.click()} style={{ ...styles.navLink, ...styles.navBtn, border: 'none', cursor: 'pointer' }}>Try for free</button>
       </div>
     </nav>
   );
@@ -102,6 +115,16 @@ function RoomAfter() {
 
 function Hero() {
   const navigate = useNavigate();
+  const fileRef = useRef(null);
+
+  function handleFileChange(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => navigate('/results', { state: { imageDataUrl: reader.result } });
+    reader.readAsDataURL(file);
+  }
+
   return (
     <section style={styles.hero}>
       <div style={styles.heroBg} aria-hidden="true" />
@@ -113,7 +136,8 @@ function Hero() {
         Upload a photo. SugGos reads your space and shows you exactly how to make it beautiful — with real furniture you can actually buy.
       </p>
       <div style={styles.heroActions}>
-        <button onClick={() => navigate('/results')} style={{ ...styles.btnRose, border: 'none', cursor: 'pointer' }}>Upload your room →</button>
+        <input type="file" accept="image/*" ref={fileRef} hidden onChange={handleFileChange} />
+        <button onClick={() => fileRef.current.click()} style={{ ...styles.btnRose, border: 'none', cursor: 'pointer' }}>Upload your room →</button>
         <a href="#how" style={styles.btnGhost}>See how it works</a>
       </div>
 
@@ -279,11 +303,22 @@ function Testimonials() {
 ───────────────────────────────────────── */
 function CtaBand() {
   const navigate = useNavigate();
+  const fileRef = useRef(null);
+
+  function handleFileChange(e) {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => navigate('/results', { state: { imageDataUrl: reader.result } });
+    reader.readAsDataURL(file);
+  }
+
   return (
     <section style={styles.ctaBand}>
       <h2 style={styles.ctaH2}>Your best room is one<br /><em style={{ fontStyle: 'italic' }}>photo away.</em></h2>
       <p style={styles.ctaP}>Free to try. No account needed. Just upload and see what's possible.</p>
-      <button onClick={() => navigate('/results')} style={{ ...styles.ctaWhite, border: 'none', cursor: 'pointer' }}>Upload a room photo →</button>
+      <input type="file" accept="image/*" ref={fileRef} hidden onChange={handleFileChange} />
+      <button onClick={() => fileRef.current.click()} style={{ ...styles.ctaWhite, border: 'none', cursor: 'pointer' }}>Upload a room photo →</button>
     </section>
   );
 }
@@ -364,7 +399,7 @@ const styles = {
   navBtn: {
     background: 'var(--rose)', color: '#fff',
     padding: '0.55rem 1.4rem', borderRadius: 100,
-    fontWeight: 500,
+    fontWeight: 500, fontFamily: 'var(--sans)',
   },
   hero: {
     background: 'var(--dark)', minHeight: '100vh',
@@ -399,7 +434,7 @@ const styles = {
   btnRose: {
     background: 'var(--rose)', color: '#fff', fontSize: '0.95rem',
     fontWeight: 500, padding: '0.85rem 2rem', borderRadius: 100,
-    textDecoration: 'none',
+    textDecoration: 'none', fontFamily: 'var(--sans)',
   },
   btnGhost: {
     background: 'transparent', color: 'var(--stone-light)', fontSize: '0.95rem',
@@ -538,7 +573,7 @@ const styles = {
   ctaWhite: {
     display: 'inline-block', background: '#fff', color: 'var(--rose)',
     fontSize: '0.95rem', fontWeight: 600, padding: '0.9rem 2.4rem',
-    borderRadius: 100, textDecoration: 'none',
+    borderRadius: 100, textDecoration: 'none', fontFamily: 'var(--sans)',
   },
   footer: {
     background: 'var(--dark)', padding: '3rem',
