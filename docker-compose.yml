@@ -1,0 +1,9 @@
+services:
+  suggos-frontend:
+    build:
+      context: ./suggos-frontend
+      dockerfile: Dockerfile
+    container_name: suggos-frontend
+    ports:
+      - "3000:80"
+    restart: unless-stopped
