@@ -1,40 +1,387 @@
 import './App.css';
-import { useRef } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom';
 import ResultsPage from './ResultsPage';
 
 /* ─────────────────────────────────────────
-   NAV
+   GLOBAL CSS — responsive + animations
 ───────────────────────────────────────── */
-function Nav() {
-  const navigate = useNavigate();
-  const fileRef = useRef(null);
-
-  function handleNavUpload(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => navigate('/results', { state: { imageDataUrl: reader.result } });
-    reader.readAsDataURL(file);
+const HOMEPAGE_CSS = `
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes scanLine {
+    0%   { top: 8%; opacity: 0.7; }
+    100% { top: 88%; opacity: 0; }
+  }
+  @keyframes progressFill {
+    from { width: 0%; }
+    to   { width: 100%; }
+  }
+  @keyframes pulseRing {
+    0%   { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(232,146,124,0.4); }
+    70%  { transform: scale(1);    box-shadow: 0 0 0 14px rgba(232,146,124,0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(232,146,124,0); }
+  }
+  @keyframes dotBounce {
+    0%, 80%, 100% { transform: translateY(0); opacity: 0.4; }
+    40%           { transform: translateY(-6px); opacity: 1; }
   }
 
+  /* ── HAMBURGER NAV ── */
+  .hp-nav-links { display: flex; align-items: center; gap: 2.5rem; }
+  .hp-hamburger { display: none; background: none; border: none; cursor: pointer; padding: 4px; }
+  .hp-mobile-menu {
+    display: none;
+    position: fixed; top: 64px; left: 0; right: 0; z-index: 190;
+    background: rgba(28,25,23,0.98); backdrop-filter: blur(12px);
+    padding: 1.5rem 2rem 2rem;
+    flex-direction: column; gap: 1.2rem;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    animation: fadeIn 0.2s ease;
+  }
+  .hp-mobile-menu.open { display: flex; }
+  .hp-mobile-link {
+    font-size: 1rem; color: var(--stone-light);
+    text-decoration: none; font-weight: 400;
+  }
+
+  /* ── ROOM STRIP ── */
+  .hp-room-strip { display: flex; gap: 12px; max-width: 900px; width: 100%; margin: 0 auto; }
+
+  /* ── STEPS ── */
+  .hp-steps-row { display: grid; grid-template-columns: repeat(3,1fr); gap: 2.5rem; margin-top: 4rem; }
+
+  /* ── BENTO ── */
+  .hp-bento { display: grid; grid-template-columns: 1.4fr 1fr; grid-template-rows: auto auto; gap: 16px; margin-top: 4rem; }
+
+  /* ── REVIEWS ── */
+  .hp-reviews-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; margin-top: 4rem; }
+
+  /* ── PROOF BAR ── */
+  .hp-proof-bar { display: flex; align-items: center; justify-content: center; flex-wrap: wrap; }
+
+  /* ── FOOTER ── */
+  .hp-footer-links { display: flex; gap: 2rem; list-style: none; }
+
+  /* ── DRAG OVERLAY ── */
+  .hp-drop-active .hp-hero-upload-zone {
+    border-color: var(--rose) !important;
+    background: rgba(232,146,124,0.08) !important;
+  }
+
+  /* ════════════════════════════════════════
+     TABLET  (≤ 900px)
+  ════════════════════════════════════════ */
+  @media (max-width: 900px) {
+    .hp-nav-links { display: none !important; }
+    .hp-hamburger { display: flex !important; }
+
+    .hp-room-strip { flex-direction: column !important; gap: 8px !important; }
+
+    .hp-steps-row { grid-template-columns: 1fr !important; gap: 2rem !important; }
+
+    .hp-bento { grid-template-columns: 1fr !important; }
+    .hp-bento > div:first-child { grid-row: auto !important; }
+
+    .hp-reviews-grid { grid-template-columns: 1fr !important; gap: 1rem !important; }
+
+    .hp-proof-bar { gap: 0 !important; }
+    .hp-proof-item { padding: 0.8rem 1.2rem !important; }
+
+    .hp-footer-inner {
+      flex-direction: column !important;
+      align-items: flex-start !important;
+      gap: 1.2rem !important;
+    }
+    .hp-footer-links { flex-wrap: wrap !important; gap: 1rem !important; }
+  }
+
+  /* ════════════════════════════════════════
+     MOBILE  (≤ 600px)
+  ════════════════════════════════════════ */
+  @media (max-width: 600px) {
+    .hp-hero { padding: 7rem 1.4rem 3.5rem !important; }
+    .hp-hero-h1 { font-size: 2.4rem !important; }
+    .hp-hero-sub { font-size: 0.97rem !important; }
+    .hp-hero-actions { flex-direction: column !important; align-items: center !important; }
+    .hp-hero-actions a, .hp-hero-actions button { width: 100% !important; max-width: 320px !important; text-align: center !important; }
+
+    .hp-how { padding: 5rem 1.4rem !important; }
+    .hp-what { padding: 5rem 1.4rem !important; }
+    .hp-testimonials { padding: 5rem 1.4rem !important; }
+    .hp-cta { padding: 5rem 1.4rem !important; }
+
+    .hp-reviews-grid { grid-template-columns: 1fr !important; }
+    .hp-proof-bar { gap: 0 !important; }
+    .hp-proof-item { padding: 0.6rem 0.9rem !important; }
+    .hp-proof-num { font-size: 1.4rem !important; }
+
+    .hp-nav { padding: 0 1.2rem !important; }
+    .hp-footer { padding: 2rem 1.4rem !important; }
+  }
+
+  /* ════════════════════════════════════════
+     SMALL MOBILE  (≤ 400px)
+  ════════════════════════════════════════ */
+  @media (max-width: 400px) {
+    .hp-hero-h1 { font-size: 2rem !important; }
+    .hp-suggestion-float { display: none !important; }
+  }
+`;
+
+function useInjectStyle(css) {
+  useEffect(() => {
+    const el = document.createElement('style');
+    el.textContent = css;
+    document.head.appendChild(el);
+    return () => document.head.removeChild(el);
+  }, [css]);
+}
+
+/* ─────────────────────────────────────────
+   ANALYZING SCREEN
+───────────────────────────────────────── */
+const ANALYZING_STEPS = [
+  'Reading room dimensions…',
+  'Detecting colour palette…',
+  'Identifying existing furniture…',
+  'Matching lighting conditions…',
+  'Generating style suggestions…',
+];
+
+function AnalyzingScreen({ imageDataUrl }) {
+  const [stepIndex, setStepIndex] = useState(0);
+  const [progress, setProgress]   = useState(0);
+
+  useEffect(() => {
+    // Cycle through step labels every 700ms
+    const stepTimer = setInterval(() => {
+      setStepIndex(i => (i + 1) % ANALYZING_STEPS.length);
+    }, 700);
+
+    // Smooth progress bar over ~3.5 s
+    const start  = Date.now();
+    const duration = 3500;
+    const tick = () => {
+      const elapsed = Date.now() - start;
+      setProgress(Math.min(95, (elapsed / duration) * 100));
+      if (elapsed < duration) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+
+    return () => clearInterval(stepTimer);
+  }, []);
+
   return (
-    <nav style={styles.nav}>
-      <a href="/" style={styles.logo}>
-        Sug<span style={{ color: 'var(--rose)' }}>Gos</span>
-      </a>
-      <div style={styles.navRight}>
-        <a href="#how" style={styles.navLink}>How it works</a>
-        <a href="#features" style={styles.navLink}>Features</a>
-        <input type="file" accept="image/*" ref={fileRef} hidden onChange={handleNavUpload} />
-        <button onClick={() => fileRef.current.click()} style={{ ...styles.navLink, ...styles.navBtn, border: 'none', cursor: 'pointer' }}>Try for free</button>
+    <div style={as.overlay}>
+      {/* Blurred room photo bg */}
+      {imageDataUrl && (
+        <div style={{
+          position: 'absolute', inset: 0, zIndex: 0,
+          backgroundImage: `url(${imageDataUrl})`,
+          backgroundSize: 'cover', backgroundPosition: 'center',
+          filter: 'blur(18px) brightness(0.25)',
+          transform: 'scale(1.05)',
+        }} />
+      )}
+
+      <div style={as.card}>
+        {/* Room preview with scan line */}
+        {imageDataUrl && (
+          <div style={as.previewBox}>
+            <img src={imageDataUrl} alt="room" style={as.previewImg} />
+            {/* Animated scan line */}
+            <div style={as.scanLine} />
+            {/* Corner brackets */}
+            {['tl','tr','bl','br'].map(c => (
+              <div key={c} style={{ ...as.corner, ...as[c] }} />
+            ))}
+          </div>
+        )}
+
+        {/* Pulsing icon */}
+        <div style={as.iconRing}>
+          <span style={{ fontSize: '1.6rem' }}>✦</span>
+        </div>
+
+        <h2 style={as.title}>Analysing your room</h2>
+
+        {/* Step text with dots */}
+        <div style={as.stepRow}>
+          <span style={as.stepText}>{ANALYZING_STEPS[stepIndex]}</span>
+          <span style={as.dots}>
+            {[0,1,2].map(i => (
+              <span key={i} style={{ ...as.dot, animationDelay: `${i * 0.18}s` }} />
+            ))}
+          </span>
+        </div>
+
+        {/* Progress bar */}
+        <div style={as.progressTrack}>
+          <div style={{ ...as.progressFill, width: `${progress}%` }} />
+        </div>
+        <div style={as.progressLabel}>{Math.round(progress)}%</div>
       </div>
-    </nav>
+    </div>
+  );
+}
+
+const as = {
+  overlay: {
+    position: 'fixed', inset: 0, zIndex: 500,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(20,18,16,0.7)',
+    animation: 'fadeIn 0.3s ease',
+  },
+  card: {
+    position: 'relative', zIndex: 1,
+    background: 'rgba(28,25,23,0.95)',
+    border: '1px solid rgba(232,146,124,0.2)',
+    borderRadius: 24, padding: '2.8rem 2.4rem',
+    width: '100%', maxWidth: 420,
+    display: 'flex', flexDirection: 'column', alignItems: 'center',
+    gap: '1.4rem', backdropFilter: 'blur(20px)',
+    boxShadow: '0 32px 80px rgba(0,0,0,0.5)',
+  },
+  previewBox: {
+    width: '100%', borderRadius: 14, overflow: 'hidden',
+    position: 'relative', aspectRatio: '16/9',
+    border: '1px solid rgba(232,146,124,0.25)',
+  },
+  previewImg: {
+    width: '100%', height: '100%', objectFit: 'cover', display: 'block',
+  },
+  scanLine: {
+    position: 'absolute', left: 0, right: 0, height: 2,
+    background: 'linear-gradient(90deg, transparent, rgba(232,146,124,0.9), transparent)',
+    animation: 'scanLine 1.4s ease-in-out infinite',
+    boxShadow: '0 0 12px rgba(232,146,124,0.6)',
+  },
+  corner: {
+    position: 'absolute', width: 18, height: 18,
+    border: '2px solid var(--rose)', opacity: 0.8,
+  },
+  tl: { top: 8,  left: 8,  borderRight: 'none', borderBottom: 'none' },
+  tr: { top: 8,  right: 8, borderLeft: 'none',  borderBottom: 'none' },
+  bl: { bottom: 8, left: 8,  borderRight: 'none', borderTop: 'none' },
+  br: { bottom: 8, right: 8, borderLeft: 'none',  borderTop: 'none' },
+  iconRing: {
+    width: 60, height: 60, borderRadius: '50%',
+    background: 'rgba(232,146,124,0.12)',
+    border: '1px solid rgba(232,146,124,0.3)',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    color: 'var(--rose)',
+    animation: 'pulseRing 1.8s ease infinite',
+  },
+  title: {
+    fontFamily: 'var(--serif)', fontSize: '1.5rem',
+    fontWeight: 400, color: 'var(--ivory)', margin: 0, textAlign: 'center',
+  },
+  stepRow: {
+    display: 'flex', alignItems: 'center', gap: '0.5rem',
+    minHeight: 22,
+  },
+  stepText: {
+    fontSize: '0.85rem', color: 'var(--stone-light)', fontWeight: 300,
+    animation: 'fadeIn 0.25s ease',
+  },
+  dots: { display: 'flex', gap: 4 },
+  dot: {
+    display: 'inline-block', width: 5, height: 5, borderRadius: '50%',
+    background: 'var(--rose)', opacity: 0.4,
+    animation: 'dotBounce 1s ease infinite',
+  },
+  progressTrack: {
+    width: '100%', height: 4, borderRadius: 100,
+    background: 'rgba(255,255,255,0.08)',
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%', borderRadius: 100,
+    background: 'linear-gradient(90deg, #c4705a, var(--rose), #f0a090)',
+    transition: 'width 0.3s ease',
+    boxShadow: '0 0 8px rgba(232,146,124,0.5)',
+  },
+  progressLabel: {
+    fontSize: '0.75rem', color: 'var(--stone)', fontWeight: 500,
+    alignSelf: 'flex-end', marginTop: '-0.8rem',
+  },
+};
+
+/* ─────────────────────────────────────────
+   NAV
+───────────────────────────────────────── */
+function Nav({ onUpload }) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const fileRef = useRef(null);
+
+  return (
+    <>
+      <nav style={styles.nav} className="hp-nav">
+        <a href="/" style={styles.logo}>
+          Sug<span style={{ color: 'var(--rose)' }}>Gos</span>
+        </a>
+
+        {/* Desktop links */}
+        <div className="hp-nav-links">
+          <a href="#how" style={styles.navLink}>How it works</a>
+          <a href="#features" style={styles.navLink}>Features</a>
+          <input type="file" accept="image/*" ref={fileRef} hidden onChange={onUpload} />
+          <button
+            onClick={() => fileRef.current.click()}
+            style={{ ...styles.navLink, ...styles.navBtn, border: 'none', cursor: 'pointer' }}
+          >
+            Try for free
+          </button>
+        </div>
+
+        {/* Hamburger */}
+        <button
+          className="hp-hamburger"
+          onClick={() => setMenuOpen(o => !o)}
+          aria-label="Menu"
+        >
+          <svg width="22" height="22" viewBox="0 0 22 22" fill="none">
+            {menuOpen
+              ? <>
+                  <line x1="4" y1="4" x2="18" y2="18" stroke="#A8A29E" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="18" y1="4" x2="4" y2="18" stroke="#A8A29E" strokeWidth="2" strokeLinecap="round"/>
+                </>
+              : <>
+                  <line x1="3" y1="6"  x2="19" y2="6"  stroke="#A8A29E" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="3" y1="11" x2="19" y2="11" stroke="#A8A29E" strokeWidth="2" strokeLinecap="round"/>
+                  <line x1="3" y1="16" x2="19" y2="16" stroke="#A8A29E" strokeWidth="2" strokeLinecap="round"/>
+                </>
+            }
+          </svg>
+        </button>
+      </nav>
+
+      {/* Mobile dropdown */}
+      <div className={`hp-mobile-menu${menuOpen ? ' open' : ''}`}>
+        <a href="#how"      className="hp-mobile-link" onClick={() => setMenuOpen(false)}>How it works</a>
+        <a href="#features" className="hp-mobile-link" onClick={() => setMenuOpen(false)}>Features</a>
+        <input type="file" accept="image/*" hidden onChange={e => { onUpload(e); setMenuOpen(false); }} id="mob-upload" />
+        <label htmlFor="mob-upload" style={{
+          background: 'var(--rose)', color: '#fff', fontSize: '0.95rem',
+          fontWeight: 500, padding: '0.85rem 1.6rem', borderRadius: 100,
+          textAlign: 'center', cursor: 'pointer',
+        }}>
+          Upload your room →
+        </label>
+      </div>
+    </>
   );
 }
 
 /* ─────────────────────────────────────────
-   HERO — Before/After SVG rooms
+   SVG ROOM ILLUSTRATIONS
 ───────────────────────────────────────── */
 function RoomBefore() {
   return (
@@ -113,43 +460,65 @@ function RoomAfter() {
   );
 }
 
-function Hero() {
-  const navigate = useNavigate();
+/* ─────────────────────────────────────────
+   HERO
+───────────────────────────────────────── */
+function Hero({ onUpload }) {
   const fileRef = useRef(null);
+  const [dragging, setDragging] = useState(false);
 
-  function handleFileChange(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => navigate('/results', { state: { imageDataUrl: reader.result } });
-    reader.readAsDataURL(file);
+  function handleDrop(e) {
+    e.preventDefault();
+    setDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    const fakeEvent = { target: { files: [file] } };
+    onUpload(fakeEvent);
   }
 
   return (
-    <section style={styles.hero}>
+    <section
+      style={styles.hero}
+      className={`hp-hero${dragging ? ' hp-drop-active' : ''}`}
+      onDragOver={e => { e.preventDefault(); setDragging(true); }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={handleDrop}
+    >
       <div style={styles.heroBg} aria-hidden="true" />
       <div style={styles.heroTag}>AI-powered interior design</div>
-      <h1 style={styles.heroH1}>
-        Your room has a<br /><em style={{ fontStyle: 'italic', color: 'var(--rose)' }}>better version</em> of itself.
+      <h1 style={styles.heroH1} className="hp-hero-h1">
+        Your room has a<br />
+        <em style={{ fontStyle: 'italic', color: 'var(--rose)' }}>better version</em> of itself.
       </h1>
-      <p style={styles.heroSub}>
+      <p style={styles.heroSub} className="hp-hero-sub">
         Upload a photo. SugGos reads your space and shows you exactly how to make it beautiful — with real furniture you can actually buy.
       </p>
-      <div style={styles.heroActions}>
-        <input type="file" accept="image/*" ref={fileRef} hidden onChange={handleFileChange} />
-        <button onClick={() => fileRef.current.click()} style={{ ...styles.btnRose, border: 'none', cursor: 'pointer' }}>Upload your room →</button>
+
+      <div style={styles.heroActions} className="hp-hero-actions">
+        <input type="file" accept="image/*" ref={fileRef} hidden onChange={onUpload} />
+        <button
+          onClick={() => fileRef.current.click()}
+          style={{ ...styles.btnRose, border: 'none', cursor: 'pointer' }}
+        >
+          Upload your room →
+        </button>
         <a href="#how" style={styles.btnGhost}>See how it works</a>
       </div>
 
+      {/* Drag hint */}
+      {dragging && (
+        <div style={styles.dragHint}>📷 Drop your room photo here</div>
+      )}
+
       {/* Room strip */}
-      <div style={styles.roomStrip}>
+      <div className="hp-room-strip">
         <div style={{ ...styles.roomCard, ...styles.roomBefore }}>
           <RoomBefore />
           <div style={styles.roomPill}>before</div>
         </div>
         <div style={{ ...styles.roomCard, ...styles.roomAfter }}>
           <RoomAfter />
-          <div style={styles.suggestionFloat}>
+          <div style={styles.suggestionFloat} className="hp-suggestion-float">
             <strong style={{ display: 'block', fontWeight: 600, fontSize: '0.75rem', marginBottom: '0.2rem' }}>✦ SugGos pick</strong>
             Velvet accent sofa<br />
             <span style={{ color: 'var(--rose)', fontWeight: 600 }}>$649 →</span>
@@ -162,7 +531,7 @@ function Hero() {
 }
 
 /* ─────────────────────────────────────────
-   SOCIAL PROOF BAR
+   PROOF BAR
 ───────────────────────────────────────── */
 const proofItems = [
   { num: '50k+', label: 'rooms redesigned' },
@@ -173,12 +542,12 @@ const proofItems = [
 
 function ProofBar() {
   return (
-    <div style={styles.proofBar}>
+    <div style={styles.proofBar} className="hp-proof-bar">
       {proofItems.map((item, i) => (
-        <div key={item.label} style={{ display: 'flex', alignItems: 'center', gap: '4rem' }}>
+        <div key={item.label} style={{ display: 'flex', alignItems: 'center' }}>
           {i > 0 && <div style={styles.proofDivider} />}
-          <div style={styles.proofItem}>
-            <div style={styles.proofNum}>{item.num}</div>
+          <div style={styles.proofItem} className="hp-proof-item">
+            <div style={styles.proofNum} className="hp-proof-num">{item.num}</div>
             <div style={styles.proofLabel}>{item.label}</div>
           </div>
         </div>
@@ -192,16 +561,16 @@ function ProofBar() {
 ───────────────────────────────────────── */
 const steps = [
   { icon: '📷', title: 'Snap a photo', body: 'Take a quick photo of any room — living room, bedroom, kitchen, anywhere. No special setup needed. A phone photo works perfectly.' },
-  { icon: '✨', title: 'AI reads your space', body: 'SugGos analyzes your room — the layout, the light, what furniture you already have, and your color palette — in about 30 seconds.' },
-  { icon: '🛒', title: 'Shop the look', body: 'Get personalized furniture and decor suggestions matched to your space, with real products and prices. Preview them in 3D before you buy.' },
+  { icon: '✨', title: 'AI reads your space', body: 'SugGos analyzes your room — the layout, the light, what furniture you already have, and your colour palette — in about 30 seconds.' },
+  { icon: '🛒', title: 'Shop the look', body: 'Get personalised furniture and decor suggestions matched to your space, with real products and prices. Preview them in 3D before you buy.' },
 ];
 
 function HowItWorks() {
   return (
-    <section style={styles.how} id="how">
+    <section style={styles.how} className="hp-how" id="how">
       <div style={styles.eyebrow}>how it works</div>
       <h2 style={styles.sectionH}>Three steps to a room you <em style={{ fontStyle: 'italic' }}>love.</em></h2>
-      <div style={styles.stepsRow}>
+      <div className="hp-steps-row">
         {steps.map(step => (
           <div key={step.title} style={styles.stepItem}>
             <div style={styles.stepIconWrap}>{step.icon}</div>
@@ -225,17 +594,17 @@ const products = [
 
 function Features() {
   return (
-    <section style={styles.what} id="features">
+    <section style={styles.what} className="hp-what" id="features">
       <div style={styles.whatInner}>
         <div style={{ ...styles.eyebrow, color: 'var(--rose-light)' }}>what you get</div>
         <h2 style={{ ...styles.sectionH, color: 'var(--ivory)', maxWidth: 500 }}>
           Design advice that <em style={{ fontStyle: 'italic' }}>knows</em> your room.
         </h2>
-        <div style={styles.bento}>
+        <div className="hp-bento" style={{ marginTop: '4rem' }}>
           <div style={{ ...styles.bentoCard, gridRow: 'span 2' }}>
             <span style={styles.bentoIcon}>🛋️</span>
             <h3 style={styles.bentoH}>Real products, real prices</h3>
-            <p style={styles.bentoP}>Every suggestion is a real item you can actually buy. SugGos matches furniture and decor to your room's style and ships you straight to the product page.</p>
+            <p style={styles.bentoP}>Every suggestion is a real item you can buy. SugGos matches furniture and decor to your room's style.</p>
             <div style={styles.bentoVisual}>
               {products.map(p => (
                 <div key={p.name} style={styles.productRow}>
@@ -252,12 +621,12 @@ function Features() {
           <div style={styles.bentoCard}>
             <span style={styles.bentoIcon}>🧊</span>
             <h3 style={styles.bentoH}>See it in 3D first</h3>
-            <p style={styles.bentoP}>Preview any piece of furniture in your actual room before spending a cent. Rotate it, move it around, see if it fits.</p>
+            <p style={styles.bentoP}>Preview any piece of furniture in your actual room before spending a cent.</p>
           </div>
           <div style={styles.bentoCard}>
             <span style={styles.bentoIcon}>🎨</span>
-            <h3 style={styles.bentoH}>Color & layout ideas</h3>
-            <p style={styles.bentoP}>Get color palette suggestions and layout tweaks tailored to your room — not generic tips from a blog post.</p>
+            <h3 style={styles.bentoH}>Colour & layout ideas</h3>
+            <p style={styles.bentoP}>Get colour palette suggestions and layout tweaks tailored to your specific room.</p>
           </div>
         </div>
       </div>
@@ -269,17 +638,17 @@ function Features() {
    TESTIMONIALS
 ───────────────────────────────────────── */
 const reviews = [
-  { text: 'I uploaded a photo of my sad living room and within a minute I had a complete redesign plan. Bought two pieces SugGos suggested and my room looks like a magazine spread.', name: 'Priya M.', loc: 'Mumbai', initials: 'P', av: { background: 'linear-gradient(135deg, #E8927C, #C4705A)' } },
+  { text: 'I uploaded a photo of my sad living room and within a minute I had a complete redesign plan. It looks like a magazine spread now.', name: 'Priya M.', loc: 'Mumbai', initials: 'P', av: { background: 'linear-gradient(135deg, #E8927C, #C4705A)' } },
   { text: "I've always been bad at decorating. SugGos just… got my style immediately. The 3D preview saved me from a couch I would have hated.", name: 'James T.', loc: 'London', initials: 'J', av: { background: 'linear-gradient(135deg, #7C8CE8, #5A6AC4)' } },
-  { text: 'Moved into a new flat and had no idea where to start. SugGos gave me an entire room plan with a budget I could actually work with. Game changer.', name: 'Amara K.', loc: 'Lagos', initials: 'A', av: { background: 'linear-gradient(135deg, #7CE8A0, #5AC470)' } },
+  { text: 'Moved into a new flat with no idea where to start. SugGos gave me an entire room plan with a budget I could actually work with.', name: 'Amara K.', loc: 'Lagos', initials: 'A', av: { background: 'linear-gradient(135deg, #7CE8A0, #5AC470)' } },
 ];
 
 function Testimonials() {
   return (
-    <section style={styles.testimonials}>
+    <section style={styles.testimonials} className="hp-testimonials">
       <div style={styles.eyebrow}>people love it</div>
       <h2 style={styles.sectionH}>Real rooms. Real <em style={{ fontStyle: 'italic' }}>results.</em></h2>
-      <div style={styles.reviewsGrid}>
+      <div className="hp-reviews-grid">
         {reviews.map(r => (
           <div key={r.name} style={styles.reviewCard}>
             <div style={styles.stars}>★★★★★</div>
@@ -301,24 +670,19 @@ function Testimonials() {
 /* ─────────────────────────────────────────
    CTA BAND
 ───────────────────────────────────────── */
-function CtaBand() {
-  const navigate = useNavigate();
+function CtaBand({ onUpload }) {
   const fileRef = useRef(null);
-
-  function handleFileChange(e) {
-    const file = e.target.files && e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => navigate('/results', { state: { imageDataUrl: reader.result } });
-    reader.readAsDataURL(file);
-  }
-
   return (
-    <section style={styles.ctaBand}>
+    <section style={styles.ctaBand} className="hp-cta">
       <h2 style={styles.ctaH2}>Your best room is one<br /><em style={{ fontStyle: 'italic' }}>photo away.</em></h2>
       <p style={styles.ctaP}>Free to try. No account needed. Just upload and see what's possible.</p>
-      <input type="file" accept="image/*" ref={fileRef} hidden onChange={handleFileChange} />
-      <button onClick={() => fileRef.current.click()} style={{ ...styles.ctaWhite, border: 'none', cursor: 'pointer' }}>Upload a room photo →</button>
+      <input type="file" accept="image/*" ref={fileRef} hidden onChange={onUpload} />
+      <button
+        onClick={() => fileRef.current.click()}
+        style={{ ...styles.ctaWhite, border: 'none', cursor: 'pointer' }}
+      >
+        Upload a room photo →
+      </button>
     </section>
   );
 }
@@ -330,38 +694,64 @@ const footerLinks = ['How it works', 'Pricing', 'Privacy', 'Contact'];
 
 function Footer() {
   return (
-    <footer style={styles.footer}>
-      <div style={styles.footerLogo}>Sug<span style={{ color: 'var(--rose)' }}>Gos</span></div>
-      <ul style={styles.footerLinks}>
-        {footerLinks.map(l => (
-          <li key={l}><a href="#" style={styles.footerLink}>{l}</a></li>
-        ))}
-      </ul>
+    <footer style={styles.footer} className="hp-footer">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', width: '100%' }} className="hp-footer-inner">
+        <div style={styles.footerLogo}>Sug<span style={{ color: 'var(--rose)' }}>Gos</span></div>
+        <ul style={{ margin: 0, padding: 0 }} className="hp-footer-links">
+          {footerLinks.map(l => (
+            <li key={l}><a href="#" style={styles.footerLink}>{l}</a></li>
+          ))}
+        </ul>
+      </div>
       <div style={styles.footerCopy}>© 2025 SugGos. All rights reserved.</div>
     </footer>
   );
 }
 
 /* ─────────────────────────────────────────
-   HOME PAGE
+   HOME PAGE — with analyzing state
 ───────────────────────────────────────── */
 function HomePage() {
+  useInjectStyle(HOMEPAGE_CSS);
+  const navigate = useNavigate();
+  const [analyzing, setAnalyzing] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
+
+  function handleUpload(e) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input so same file can be re-selected
+    if (e.target) e.target.value = '';
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = reader.result;
+      setPreviewUrl(dataUrl);
+      setAnalyzing(true);
+      // Show analyzing screen for 3.5s then go to results
+      setTimeout(() => {
+        navigate('/results', { state: { imageDataUrl: dataUrl } });
+      }, 3500);
+    };
+    reader.readAsDataURL(file);
+  }
+
   return (
     <>
-      <Nav />
-      <Hero />
+      {analyzing && <AnalyzingScreen imageDataUrl={previewUrl} />}
+      <Nav onUpload={handleUpload} />
+      <Hero onUpload={handleUpload} />
       <ProofBar />
       <HowItWorks />
       <Features />
       <Testimonials />
-      <CtaBand />
+      <CtaBand onUpload={handleUpload} />
       <Footer />
     </>
   );
 }
 
 /* ─────────────────────────────────────────
-   APP ROOT — with Router
+   APP ROOT
 ───────────────────────────────────────── */
 function App() {
   return (
@@ -391,11 +781,7 @@ const styles = {
     fontFamily: 'var(--serif)', fontSize: '1.4rem', fontWeight: 500,
     color: 'var(--ivory)', textDecoration: 'none', letterSpacing: '0.02em',
   },
-  navRight: { display: 'flex', alignItems: 'center', gap: '2.5rem' },
-  navLink: {
-    fontSize: '0.88rem', color: 'var(--stone-light)',
-    textDecoration: 'none', fontWeight: 400,
-  },
+  navLink: { fontSize: '0.88rem', color: 'var(--stone-light)', textDecoration: 'none', fontWeight: 400 },
   navBtn: {
     background: 'var(--rose)', color: '#fff',
     padding: '0.55rem 1.4rem', borderRadius: 100,
@@ -441,16 +827,20 @@ const styles = {
     fontWeight: 400, padding: '0.85rem 2rem', borderRadius: 100,
     border: '1px solid rgba(168,162,158,0.3)', textDecoration: 'none',
   },
-  roomStrip: {
-    display: 'flex', gap: 12, maxWidth: 900, width: '100%', margin: '0 auto',
+  dragHint: {
+    position: 'absolute', top: '50%', left: '50%',
+    transform: 'translate(-50%,-50%)',
+    background: 'rgba(232,146,124,0.15)',
+    border: '2px dashed var(--rose)', borderRadius: 16,
+    color: 'var(--rose-light)', fontSize: '1.1rem', fontWeight: 500,
+    padding: '1.5rem 3rem', pointerEvents: 'none',
+    zIndex: 10,
   },
   roomCard: {
     flex: 1, borderRadius: 16, overflow: 'hidden',
     position: 'relative', aspectRatio: '4/3', background: 'var(--dark2)',
   },
-  roomBefore: {
-    background: 'linear-gradient(160deg, #2A2320 0%, #1E1A18 100%)',
-  },
+  roomBefore: { background: 'linear-gradient(160deg, #2A2320 0%, #1E1A18 100%)' },
   roomAfter: {
     background: 'linear-gradient(160deg, #2C2420 0%, #3A2D26 100%)',
     border: '1px solid rgba(232,146,124,0.25)',
@@ -475,14 +865,9 @@ const styles = {
     background: 'var(--ivory2)',
     borderTop: '1px solid #E8E0D8', borderBottom: '1px solid #E8E0D8',
     padding: '1.6rem 2rem',
-    display: 'flex', alignItems: 'center', justifyContent: 'center',
-    gap: '0', flexWrap: 'wrap',
   },
   proofItem: { textAlign: 'center', padding: '0 2rem' },
-  proofNum: {
-    fontFamily: 'var(--serif)', fontSize: '1.8rem',
-    fontWeight: 500, color: 'var(--dark)', lineHeight: 1,
-  },
+  proofNum: { fontFamily: 'var(--serif)', fontSize: '1.8rem', fontWeight: 500, color: 'var(--dark)', lineHeight: 1 },
   proofLabel: { fontSize: '0.78rem', color: 'var(--stone)', marginTop: '0.2rem', fontWeight: 400 },
   proofDivider: { width: 1, height: 40, background: '#D4CCC4' },
   how: { maxWidth: 1100, margin: '0 auto', padding: '8rem 2rem' },
@@ -494,35 +879,21 @@ const styles = {
     fontFamily: 'var(--serif)', fontSize: 'clamp(2rem, 3.5vw, 3rem)',
     fontWeight: 400, lineHeight: 1.2, color: 'var(--dark)', maxWidth: 560,
   },
-  stepsRow: {
-    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '2.5rem', marginTop: '4rem',
-  },
   stepItem: { display: 'flex', flexDirection: 'column', gap: '1rem' },
   stepIconWrap: {
     width: 52, height: 52, borderRadius: 14, background: 'var(--rose-pale)',
     display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.4rem',
   },
-  stepH: {
-    fontFamily: 'var(--serif)', fontSize: '1.25rem',
-    fontWeight: 400, color: 'var(--dark)', lineHeight: 1.3,
-  },
+  stepH: { fontFamily: 'var(--serif)', fontSize: '1.25rem', fontWeight: 400, color: 'var(--dark)', lineHeight: 1.3 },
   stepP: { fontSize: '0.9rem', color: 'var(--stone)', lineHeight: 1.7, fontWeight: 300 },
   what: { background: 'var(--dark)', padding: '8rem 2rem' },
   whatInner: { maxWidth: 1100, margin: '0 auto' },
-  bento: {
-    display: 'grid', gridTemplateColumns: '1.4fr 1fr',
-    gridTemplateRows: 'auto auto', gap: 16, marginTop: '4rem',
-  },
   bentoCard: {
     background: 'var(--dark2)', borderRadius: 20, padding: '2.2rem 2rem',
     border: '1px solid rgba(255,255,255,0.06)',
   },
   bentoIcon: { fontSize: '2rem', marginBottom: '1.4rem', display: 'block' },
-  bentoH: {
-    fontFamily: 'var(--serif)', fontSize: '1.35rem',
-    fontWeight: 400, color: 'var(--ivory)', marginBottom: '0.7rem', lineHeight: 1.3,
-  },
+  bentoH: { fontFamily: 'var(--serif)', fontSize: '1.35rem', fontWeight: 400, color: 'var(--ivory)', marginBottom: '0.7rem', lineHeight: 1.3 },
   bentoP: { fontSize: '0.88rem', color: '#78716C', lineHeight: 1.7, fontWeight: 300 },
   bentoVisual: {
     marginTop: '2rem', background: 'rgba(255,255,255,0.04)',
@@ -539,14 +910,7 @@ const styles = {
   productMeta: { fontSize: '0.72rem', color: '#55524F' },
   productPrice: { fontSize: '0.88rem', color: 'var(--rose)', fontWeight: 600 },
   testimonials: { maxWidth: 1100, margin: '0 auto', padding: '8rem 2rem' },
-  reviewsGrid: {
-    display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '1.5rem', marginTop: '4rem',
-  },
-  reviewCard: {
-    background: 'var(--ivory2)', borderRadius: 16, padding: '1.8rem',
-    border: '1px solid #E8E0D8',
-  },
+  reviewCard: { background: 'var(--ivory2)', borderRadius: 16, padding: '1.8rem', border: '1px solid #E8E0D8' },
   stars: { color: 'var(--rose)', fontSize: '0.85rem', letterSpacing: '0.05em', marginBottom: '1rem' },
   reviewText: {
     fontFamily: 'var(--serif)', fontSize: '1rem', fontWeight: 400,
@@ -566,10 +930,7 @@ const styles = {
     fontWeight: 400, color: '#fff', lineHeight: 1.2,
     marginBottom: '1.2rem', maxWidth: 640, marginLeft: 'auto', marginRight: 'auto',
   },
-  ctaP: {
-    fontSize: '1rem', color: 'rgba(255,255,255,0.75)',
-    marginBottom: '2.5rem', fontWeight: 300,
-  },
+  ctaP: { fontSize: '1rem', color: 'rgba(255,255,255,0.75)', marginBottom: '2.5rem', fontWeight: 300 },
   ctaWhite: {
     display: 'inline-block', background: '#fff', color: 'var(--rose)',
     fontSize: '0.95rem', fontWeight: 600, padding: '0.9rem 2.4rem',
@@ -577,15 +938,9 @@ const styles = {
   },
   footer: {
     background: 'var(--dark)', padding: '3rem',
-    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-    flexWrap: 'wrap', gap: '1rem',
+    display: 'flex', flexDirection: 'column', gap: '0',
   },
-  footerLogo: {
-    fontFamily: 'var(--serif)', fontSize: '1.2rem', color: 'var(--stone-light)',
-  },
-  footerLinks: {
-    display: 'flex', gap: '2rem', listStyle: 'none',
-  },
+  footerLogo: { fontFamily: 'var(--serif)', fontSize: '1.2rem', color: 'var(--stone-light)' },
   footerLink: { fontSize: '0.82rem', color: '#55524F', textDecoration: 'none' },
   footerCopy: {
     fontSize: '0.75rem', color: '#44403C', width: '100%',
