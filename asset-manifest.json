@@ -1,0 +1,15 @@
+{
+  "files": {
+    "main.css": "/SUGGOS/static/css/main.b8c0288c.css",
+    "main.js": "/SUGGOS/static/js/main.b65ec284.js",
+    "static/js/453.45432d3a.chunk.js": "/SUGGOS/static/js/453.45432d3a.chunk.js",
+    "index.html": "/SUGGOS/index.html",
+    "main.b8c0288c.css.map": "/SUGGOS/static/css/main.b8c0288c.css.map",
+    "main.b65ec284.js.map": "/SUGGOS/static/js/main.b65ec284.js.map",
+    "453.45432d3a.chunk.js.map": "/SUGGOS/static/js/453.45432d3a.chunk.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.b8c0288c.css",
+    "static/js/main.b65ec284.js"
+  ]
+}
