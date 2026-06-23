@@ -1,4 +1,15 @@
 services:
+  suggos-backend:
+    build:
+      context: ./suggos-backend
+      dockerfile: Dockerfile
+    container_name: suggos-backend
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./suggos-backend/.env
+    restart: unless-stopped
+
   suggos-frontend:
     build:
       context: ./suggos-frontend
@@ -6,4 +17,6 @@ services:
     container_name: suggos-frontend
     ports:
       - "3000:80"
+    depends_on:
+      - suggos-backend
     restart: unless-stopped
