@@ -1,7 +1,8 @@
 import './App.css';
 import { useRef, useState, useEffect } from 'react';
-import { HashRouter, Routes, Route, useNavigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, useNavigate, Link } from 'react-router-dom';
 import ResultsPage from './ResultsPage';
+import SignupPage from './SignupPage';
 
 /* ─────────────────────────────────────────
    GLOBAL CSS — responsive + animations
@@ -242,6 +243,7 @@ function Nav({ onUpload }) {
         <div className="hp-nav-links">
           <a href="#how" style={styles.navLink}>How it works</a>
           <a href="#features" style={styles.navLink}>Features</a>
+          <Link to="/signup" style={styles.navLink}>Sign up</Link>
           <input type="file" accept="image/*" ref={fileRef} hidden onChange={onUpload} />
           <button onClick={() => fileRef.current.click()} style={{ ...styles.navLink, ...styles.navBtn, border: 'none', cursor: 'pointer' }}>
             Try for free
@@ -259,6 +261,7 @@ function Nav({ onUpload }) {
       <div className={`hp-mobile-menu${menuOpen ? ' open' : ''}`}>
         <a href="#how" className="hp-mobile-link" onClick={() => setMenuOpen(false)}>How it works</a>
         <a href="#features" className="hp-mobile-link" onClick={() => setMenuOpen(false)}>Features</a>
+        <Link to="/signup" className="hp-mobile-link" onClick={() => setMenuOpen(false)}>Sign up</Link>
         <input type="file" accept="image/*" hidden onChange={e => { onUpload(e); setMenuOpen(false); }} id="mob-upload" />
         <label htmlFor="mob-upload" style={{ background: 'var(--rose)', color: '#fff', fontSize: '0.95rem', fontWeight: 500, padding: '0.85rem 1.6rem', borderRadius: 100, textAlign: 'center', cursor: 'pointer' }}>
           Upload your room →
@@ -572,6 +575,7 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/results" element={<ResultsPage />} />
+        <Route path="/signup" element={<SignupPage />} />
       </Routes>
     </HashRouter>
   );
