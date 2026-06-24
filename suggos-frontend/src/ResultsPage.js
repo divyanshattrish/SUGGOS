@@ -180,12 +180,14 @@ function useGlobalStyle(css) {
 }
 
 /* ─────────────────────────────────────────
-   UNSPLASH PHOTO URL helper
-   Uses the free Unsplash Source redirect API
+   PRODUCT PHOTO — currently disabled.
+   Free placeholder services (Picsum, old Unsplash Source) either
+   return random/irrelevant photos or are discontinued, and a real
+   keyword-search image API (Unsplash/Pexels) needs a key + a
+   backend proxy to avoid CORS issues. Until that backend exists,
+   cards use their gradient + category label only, which is honest
+   and still looks intentional rather than showing a wrong photo.
 ───────────────────────────────────────── */
-function unsplashUrl(query, w = 400, h = 300) {
-  return `https://source.unsplash.com/${w}x${h}/?${encodeURIComponent(query)}&auto=format`;
-}
 
 /* ─────────────────────────────────────────
    FALLBACK MOCK DATA (used when no photo)
@@ -293,75 +295,26 @@ const FALLBACK_INSIGHTS = [
 ];
 
 /* ─────────────────────────────────────────
-   AI ANALYSIS — one call, three outputs
+   AI ANALYSIS — calls our own backend, which calls Gemini.
+   We never call the AI provider directly from the browser:
+   1) the provider blocks cross-origin calls from a webpage (CORS), and
+   2) an API key in frontend code is visible to anyone via dev tools.
+   The backend lives in /suggos-backend and proxies this request.
 ───────────────────────────────────────── */
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:5000';
+
 async function analyzeRoom(imageDataUrl) {
-  const base64Data = imageDataUrl.split(',')[1];
-  const mediaType = imageDataUrl.split(';')[0].split(':')[1] || 'image/jpeg';
-
-  const prompt = `You are an expert interior designer. Analyze this room photo and return ONLY a valid JSON object — no markdown, no explanation, nothing else.
-
-The JSON must follow this exact shape:
-{
-  "suggestions": [
-    {
-      "id": 1,
-      "name": "product name",
-      "category": "one of: Seating | Lighting | Rugs | Tables | Decor | Storage | Art | Plants",
-      "reason": "1-2 sentence explanation tied to what you see in the room",
-      "price": "$XXX",
-      "retailer": "retailer name",
-      "link": "https://retailer.com/search?q=product",
-      "match": 95,
-      "gradient": "linear-gradient(145deg, #hex 0%, #hex 60%, #hex 100%)",
-      "tag": "✦ Top pick or null",
-      "accentColor": "#hex",
-      "imageQuery": "2-4 word Unsplash search query for this product type, e.g. velvet sofa sand"
-    }
-  ],
-  "palette": [
-    { "color": "#hex", "label": "color name" }
-  ],
-  "insights": [
-    { "icon": "emoji", "label": "insight label", "value": "insight value" }
-  ]
-}
-
-Rules:
-- Return exactly 6 suggestions, sorted by match % descending. First item gets tag "✦ Top pick", others null.
-- Each gradient should use colors that visually represent the product (earthy for wood, warm for brass, etc.)
-- imageQuery should be a short descriptive phrase that would find a good product photo on Unsplash.
-- Return exactly 5 palette colors extracted from the actual room photo.
-- Return exactly 4 insights covering: natural light, estimated size, current style, biggest opportunity.
-- Retailer links should be real search URLs (West Elm, CB2, IKEA, Article, Wayfair, H&M Home, Rugs USA, etc.)
-- match % should be between 75 and 99.`;
-
-  const response = await fetch('https://api.anthropic.com/v1/messages', {
+  const response = await fetch(`${BACKEND_URL}/api/analyze`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: 1200,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: { type: 'base64', media_type: mediaType, data: base64Data },
-            },
-            { type: 'text', text: prompt },
-          ],
-        },
-      ],
-    }),
+    body: JSON.stringify({ imageDataUrl }),
   });
 
-  if (!response.ok) throw new Error(`API error: ${response.status}`);
-  const data = await response.json();
-  const text = data.content.map(b => b.text || '').join('');
-  const clean = text.replace(/```json|```/g, '').trim();
-  return JSON.parse(clean);
+  if (!response.ok) {
+    const errBody = await response.json().catch(() => ({}));
+    throw new Error(errBody.error || `Backend error: ${response.status}`);
+  }
+  return response.json();
 }
 
 /* ─────────────────────────────────────────
@@ -444,6 +397,12 @@ function RoomPreview({ activeId, imageDataUrl, suggestions }) {
           <rect x="178" y="38" width="50" height="60" rx="4" fill="#3A3028" stroke="#5A4838" strokeWidth="1"/>
           <rect x="472" y="38" width="50" height="60" rx="4" fill="#3A3028" stroke="#5A4838" strokeWidth="1"/>
           {activeId && <ellipse cx="300" cy="295" rx="300" ry="30" fill="rgba(232,146,124,0.05)"/>}
+          {/* Generic highlight ring for suggestion ids beyond the 4 illustrated
+              furniture pieces above (real AI suggestions can have any id) so
+              hovering a card still gives visible feedback on this mock room. */}
+          {activeId && ![1, 2, 3, 4].includes(activeId) && (
+            <rect x="6" y="6" width="688" height="408" rx="10" fill="none" stroke="#E8927C" strokeWidth="3" strokeDasharray="10 6" opacity="0.55"/>
+          )}
         </svg>
       )}
 
@@ -536,10 +495,6 @@ function SkeletonGrid() {
    SUGGESTION CARD — with real photo
 ───────────────────────────────────────── */
 function SuggestionCard({ item, isActive, onHover, onLeave, index }) {
-  const [imgLoaded, setImgLoaded] = useState(false);
-  const [imgError, setImgError]   = useState(false);
-  const photoUrl = item.imageQuery ? unsplashUrl(item.imageQuery) : null;
-
   return (
     <div
       className={`sg-card sg-card-stagger-${index + 1}${isActive ? ' active' : ''}`}
@@ -547,17 +502,6 @@ function SuggestionCard({ item, isActive, onHover, onLeave, index }) {
       onMouseLeave={onLeave}
     >
       <div style={{ ...s.cardThumb, background: item.gradient, position: 'relative' }}>
-        {/* Real photo — fades in over gradient once loaded */}
-        {photoUrl && !imgError && (
-          <img
-            className="sg-card-photo"
-            src={photoUrl}
-            alt={item.name}
-            style={{ opacity: imgLoaded ? 1 : 0 }}
-            onLoad={() => setImgLoaded(true)}
-            onError={() => setImgError(true)}
-          />
-        )}
         <div className="sg-thumb-overlay" />
         <div style={s.matchBar}>
           <div style={{ ...s.matchFill, width: `${item.match}%`, background: item.accentColor }} />
@@ -664,7 +608,7 @@ export default function ResultsPage() {
       setInsights(result.insights);
     } catch (err) {
       console.error('AI analysis failed:', err);
-      setError('Could not analyse the photo. Showing general suggestions instead.');
+      setError('Could not analyse this photo right now — showing general suggestions instead. Try re-uploading or check your connection.');
     } finally {
       setLoading(false);
     }
@@ -689,8 +633,9 @@ export default function ResultsPage() {
   const categories = ['All', ...Array.from(new Set(suggestions.map(sg => sg.category)))];
   const filtered   = filter === 'All' ? suggestions : suggestions.filter(sg => sg.category === filter);
 
-  // Calculate estimated total from suggestions
-  const totalCost = suggestions.reduce((acc, sg) => {
+  // Calculate estimated total from the currently filtered suggestions
+  // (not the full list) so the number stays accurate when filtering.
+  const totalCost = filtered.reduce((acc, sg) => {
     const num = parseFloat((sg.price || '').replace(/[^0-9.]/g, ''));
     return acc + (isNaN(num) ? 0 : num);
   }, 0);
@@ -722,12 +667,15 @@ export default function ResultsPage() {
               </h1>
             </div>
             <div style={s.budgetPill} className="sg-budget-pill">
-              Est. total: <strong>${totalCost.toLocaleString()}</strong>
+              {filter === 'All' ? 'Est. total' : `Est. total (${filter})`}: <strong>${totalCost.toLocaleString()}</strong>
             </div>
           </div>
 
           {error && (
-            <div style={s.errorBanner}>⚠️ {error}</div>
+            <div style={s.errorBanner}>
+              <span style={{ fontSize: '1.1rem', flexShrink: 0 }}>⚠️</span>
+              <span>{error}</span>
+            </div>
           )}
 
           {loading ? (
@@ -896,8 +844,9 @@ const s = {
   cardPrice: { fontFamily: 'var(--serif)', fontSize: '1.1rem', fontWeight: 500, color: 'var(--dark)' },
   cardRetailer: { fontSize: '0.68rem', color: 'var(--stone-light)', marginTop: '0.08rem' },
   errorBanner: {
-    background: 'rgba(232,146,124,0.1)', border: '1px solid rgba(232,146,124,0.3)',
-    borderRadius: 10, padding: '0.75rem 1rem', fontSize: '0.82rem',
-    color: 'var(--rose)', marginBottom: '1.2rem',
+    background: 'rgba(232,146,124,0.12)', border: '1px solid rgba(232,146,124,0.4)',
+    borderRadius: 10, padding: '0.9rem 1.1rem', fontSize: '0.85rem',
+    color: '#8B4A38', marginBottom: '1.4rem', display: 'flex', alignItems: 'center', gap: '0.6rem',
+    fontWeight: 500,
   },
 };

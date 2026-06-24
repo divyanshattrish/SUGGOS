@@ -1,9 +1,10 @@
-const express = require('express');
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const User = require('../models/User');
+import express from 'express';
+import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
+import User from '../models/User.js';
 
 const router = express.Router();
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
 
 /* GET /api/auth/check-username/:username — live availability check */
 router.get('/check-username/:username', async (req, res) => {
@@ -23,6 +24,7 @@ router.get('/check-username/:username', async (req, res) => {
       message: existing ? 'Username already taken' : 'Username available',
     });
   } catch (err) {
+    console.error('Check username error:', err);
     res.status(500).json({ available: false, message: 'Server error checking username' });
   }
 });
@@ -111,12 +113,12 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id, username: user.username },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '7d' }
     );
 
     res.json({
-      message: 'Logged in successfully!',
+      message: 'Login successful!',
       token,
       user: { id: user._id, username: user.username, email: user.email },
     });
@@ -126,4 +128,4 @@ router.post('/login', async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;
